@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ca.uvic.frbk1992.spamsmsdetector.sms.SMSActivity">
+    <item
+        android:id="@+id/fragment_spam_sms_detail_test_url_id"
+        android:orderInCategory="100"
+        android:title="@string/fragment_sms_detail_check_url_phishing_site_string"
+        app:showAsAction="never" />
+</menu>

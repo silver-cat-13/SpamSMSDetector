@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#3F51B5</color>
+
+    <!-- escala de grises -->
+    <!-- Textos -->
+    <color name="darkGray">#3a4454</color>
+    <color name="mediumGray">#556176</color>
+    <color name="lightGray">#708090</color>
+    <!-- Otros -->
+    <color name="disableTextGray">#a5adb4</color>
+    <color name="lineGray">#e0e0e0</color>
+    <color name="colorEscalaGrisesGrisFondo">#eceff1</color>
+
+    <color name="colorWarning">#9e9d24</color>
+
+
+    <color name="colorWhite">#ffffff</color>
+
+</resources>

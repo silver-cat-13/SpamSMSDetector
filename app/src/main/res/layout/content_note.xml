@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:background="?android:attr/activatedBackgroundIndicator"
+    android:orientation="vertical">
+
+
+    <TextView
+        style="@style/TextList.Title"
+        android:id="@+id/text_view_list_title" />
+
+    <TextView
+        style="@style/TextList.Detail"
+        android:id="@+id/text_view_list_detail"
+        android:layout_marginBottom="0dp"/>
+
+</LinearLayout>

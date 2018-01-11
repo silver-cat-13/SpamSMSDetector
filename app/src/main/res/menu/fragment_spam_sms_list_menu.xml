@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ca.uvic.frbk1992.spamsmsdetector.sms.SMSActivity">
+    <item
+        android:id="@+id/fragment_list_menu_test_spam_sms_id"
+        android:orderInCategory="100"
+        android:title="@string/fragment_list_menu_delete_spam_sms_string"
+        app:showAsAction="never" />
+</menu>

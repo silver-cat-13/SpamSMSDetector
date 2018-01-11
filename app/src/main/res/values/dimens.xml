@@ -1,0 +1,35 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="nav_header_vertical_spacing">8dp</dimen>
+    <dimen name="nav_header_height">176dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+
+
+    <dimen name="margin_layout_vertical">30dp</dimen>
+    <dimen name="margin_layout_horizontal">15dp</dimen>
+
+    <dimen name="margin_elements_inside_layout_vertical">25dp</dimen>
+    <dimen name="margin_elements_inside_layout_horizontal">15dp</dimen>
+
+
+    <!-- Margen vertical y horizantal del texto en las listas -->
+    <dimen name="list_text_margin_horizontal">16dp</dimen>
+    <dimen name="list_text_margin_vertical">3dp</dimen>
+
+    <!-- Tamano del texto de las listas -->
+    <dimen name="list_text_title_size">22sp</dimen>
+    <dimen name="list_text_detail_size">16sp</dimen>
+    <dimen name="list_text_indicator_size">14sp</dimen>
+
+    <!--height of gray bar in spam sms list-->
+    <dimen name="list_spam_sms_gray_bar_size">20dp</dimen>
+
+    <!--padding used in the text in the gray bar for the spam sms list-->
+    <dimen name="padding_horizontal_spam_sms_list_indicator">16dp</dimen>
+
+    <!-- Largo de las imagenes en el crear lista -->
+    <dimen name="image_lenght_note">130dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
+</resources>
