@@ -84,6 +84,14 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
         return false
     }
 
+
+    /**
+     * Function called when the SMS given is spam
+     */
+    fun smsIsSpam(){
+        showToast(context!!, "SMS is Spam")
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //                   OnFinishFeaturesPhishingWebsite  Functions                               //
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,8 +103,9 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
         Log.v(TAG, "url $url")
         Log.v(TAG, "features ${Arrays.toString(features)}")
 
-        if(mListener?.detectPhishingSite(features)!!) showToast(context!!, "Warning: URL is phishing")
-        else showToast(context!!, "URL is not phishing")
+        //check if site is phishing
+        mListener?.detectPhishingSite(features)!!
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,6 +117,8 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
      */
     interface OnSMSDetailFragmentInteractionListener{
         fun detectPhishingSite(features : FloatArray) : Boolean
+
+        fun detectSpamSMS()
     }
 
     companion object {

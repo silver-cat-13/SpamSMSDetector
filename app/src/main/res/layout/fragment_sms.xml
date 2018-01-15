@@ -33,7 +33,6 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:text="1234324"
                     android:paddingTop="16dp"
                     android:paddingBottom="16dp"
                     android:layout_width="match_parent"
@@ -44,7 +43,6 @@
 
 
                 <TextView
-                    android:text="1234324"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
@@ -52,7 +50,6 @@
                     android:id="@+id/fragment_sms_title" />
 
                 <TextView
-                    android:text="1234324"
                     android:paddingTop="16dp"
                     android:paddingBottom="16dp"
                     android:layout_width="match_parent"

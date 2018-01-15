@@ -93,6 +93,11 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_sms">SMSActivity</string>
 
+    <!-- Main Activity -->
+    <string name="alert_dialog_not_permission_title_string">Error</string>
+    <string name="alert_dialog_not_permission_botton_string">OK</string>
+    <string name="alert_dialog_not_permission_body_string">The application needs access to your SMS.</string>
+
 
     <!--Spam SMS List Fragment-->
     <string name="text_view_spam_sms_indicator_string">You have # spam SMS.</string>

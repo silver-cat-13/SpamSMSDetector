@@ -41,7 +41,7 @@ class PhishingClassifier : Classifier {
                inputName : String,
                outputName : String) : PhishingClassifier {
 
-        val c = PhishingClassifier()
+        var c = PhishingClassifier()
         c.inputName = inputName
         c.outputName = outputName
 
