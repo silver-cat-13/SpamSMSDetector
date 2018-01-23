@@ -42,11 +42,11 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
         //get the sms
         val bundle = intent.extras
         if(bundle != null){
-            sms = bundle.getParcelable(SMS_DETAIL_ACTIVITY);
+            sms = bundle.getParcelable(SMS_DETAIL_ACTIVITY)
         }
 
         if(savedInstanceState != null){
-            sms = savedInstanceState.getParcelable(SMS);
+            sms = savedInstanceState.getParcelable(SMS)
         }
 
         //get the URL, in case there are no URL it stays at ""
@@ -54,7 +54,7 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
 
         //call the SMSListFragment
         if (savedInstanceState == null) {
-            startFragment(SMSDetailFragment.newInstance(sms!!), SMS_DETAIL_FRAGMENT_TAG);
+            startFragment(SMSDetailFragment.newInstance(sms!!), SMS_DETAIL_FRAGMENT_TAG)
         }
 
 
@@ -259,7 +259,7 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
      * Also, check if the sms is spam or not, in the case is spam return true, false otherwise
      */
     private fun callableSpamClassifier(context: Context): Callable<Boolean> {
-        return Callable<Boolean> {
+        return Callable {
             Log.v(TAG, "Creating model for Spam classifier")
             smsSpamClassifier = SMSSpamClassifier().create(
                     assetManager = context.assets,

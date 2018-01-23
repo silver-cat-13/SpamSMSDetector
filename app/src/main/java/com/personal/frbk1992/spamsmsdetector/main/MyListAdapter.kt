@@ -25,7 +25,7 @@ class MyListAdapter(val mContext: Context?,
     /*
     Holder class
      */
-    private class ViewHolder(){
+    private class ViewHolder {
         var mView : View? = null
         var mTitleView : TextView? = null
         var mContentView : TextView? = null

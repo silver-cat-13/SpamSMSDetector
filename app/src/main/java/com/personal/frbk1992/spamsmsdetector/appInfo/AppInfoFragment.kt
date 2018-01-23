@@ -34,22 +34,18 @@ class AppInfoFragment : Fragment() {
 
     private fun getLicenseAsset() : String{
 
-        var tContents = ""
-
-        try {
+        return try {
             val stream = context!!.assets.open(APACHE_LICENSE)
             val size = stream.available()
             val buffer = ByteArray(size)
             stream.read(buffer)
             stream.close()
-            tContents = String(buffer)
+            String(buffer)
         } catch (e : IOException) {
             // Handle exceptions here
             Log.e(TAG, "error reading the apache license")
-            return "..."
+            "..."
         }
-
-        return tContents;
     }
 
     companion object {
@@ -58,7 +54,6 @@ class AppInfoFragment : Fragment() {
          *
          * @return A new instance of fragment AppInfoFragment.
          */
-        // TODO: Rename and change types and number of parameters
         fun newInstance(): AppInfoFragment {
             return AppInfoFragment()
         }

@@ -28,7 +28,7 @@ class TestUrlActivity : AppCompatActivity(), TestUrlActivityFragment.OnTestUrlFr
         initTensorFlowAndLoadModel()
 
         if (savedInstanceState == null) {
-            startFragment(TestUrlActivityFragment.newInstance(), TEST_URL_FRAGMENT_TAG);
+            startFragment(TestUrlActivityFragment.newInstance(), TEST_URL_FRAGMENT_TAG)
         }
     }
 

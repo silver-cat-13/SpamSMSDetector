@@ -3,7 +3,7 @@ package com.personal.frbk1992.spamsmsdetector.classifier
 
 import android.content.res.AssetManager
 import android.util.Log
-import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
+import org.tensorflow.contrib.android.TensorFlowInferenceInterface
 import android.support.v4.os.TraceCompat
 import java.util.*
 
@@ -41,7 +41,7 @@ class PhishingClassifier : Classifier {
                inputName : String,
                outputName : String) : PhishingClassifier {
 
-        var c = PhishingClassifier()
+        val c = PhishingClassifier()
         c.inputName = inputName
         c.outputName = outputName
 

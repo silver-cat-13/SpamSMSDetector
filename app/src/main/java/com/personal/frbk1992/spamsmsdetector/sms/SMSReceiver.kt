@@ -54,7 +54,7 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
             val sms = SmsMessage.createFromPdu(pdus[0] as ByteArray)
 
             //classify if the SMS is Spam or not
-            classifySMS(context, sms.messageBody, sms.originatingAddress)
+            classifySMS(context, sms.messageBody)
 
         }
     }
@@ -64,8 +64,8 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
      */
     private fun showNotification(ctx : Context, sms : String, address : String){
         // The id of the channel.
-        val CHANNEL_ID = "my_channel_01"
-        val mBuilder = NotificationCompat.Builder(ctx, CHANNEL_ID)
+        val channelId = "my_channel_01"
+        val mBuilder = NotificationCompat.Builder(ctx, channelId)
                 .setSmallIcon(R.drawable.ic_sms_24dp)
                 .setContentTitle("New SMS from $address")
                 .setContentText(sms)
@@ -100,7 +100,7 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
     /**
      * classifies the incoming sms
      */
-    private fun classifySMS(ctx :Context,  sms : String, address : String){
+    private fun classifySMS(ctx: Context, sms: String){
         val featuresSMS = FloatArray(SMSSpamClassifier.ATTRIBUTE_AMOUNT)
 
         for (i in BAG_OF_WORDS.indices){

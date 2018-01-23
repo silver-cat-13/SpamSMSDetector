@@ -15,21 +15,19 @@ class ConnectionResponse(var url : String? = "",
                          var code : Int? = -1,
                          var isHttps : Boolean? = false,
                          var ip: String = "",
-                         var certificates : ArrayList<Certificate> = ArrayList<Certificate>()){
-
-    val CONNECTION_NULL = -1
+                         var certificates : ArrayList<Certificate> = ArrayList()){
 
 
-    object constants {
-        val CODE_REGULAR_CONECTION = 0 //regular conection, get http
+    object Constants {
+        const val CODE_REGULAR_CONECTION = 0 //regular conection, get http
 
-        val CODE_REDIRECT_CONECTION = 1 //conection to get the redirected website
+        const val CODE_REDIRECT_CONECTION = 1 //conection to get the redirected website
 
-        val CODE_WHO_IS_CONECTION = 2 //conection use for the who is conection
+        const val CODE_WHO_IS_CONECTION = 2 //conection use for the who is conection
 
-        val CODE_ALEXA_CONECTION = 3 //conection use for the alexa connection
+        const val CODE_ALEXA_CONECTION = 3 //conection use for the alexa connection
 
-        val CODE_GOOGLE_INDEX_CONECTION = 4 //conection use for the google page index
+        const val CODE_GOOGLE_INDEX_CONECTION = 4 //conection use for the google page index
     }
 }
 

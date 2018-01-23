@@ -50,7 +50,7 @@ class SpamSMSActivityFragment : ListFragment() {
     override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
         //sms was selected, go the detail
         //get the sms selected and show ir
-        mListener?.showSpamSMS(myListAdapter.getAllSMS()!!.get(position))
+        mListener?.showSpamSMS(myListAdapter.getAllSMS()!![position])
     }
 
     /**
@@ -93,7 +93,7 @@ class SpamSMSActivityFragment : ListFragment() {
                 mListener)
 
         // le pasa el el adaptador al listview
-        listView.adapter = myListAdapter;
+        listView.adapter = myListAdapter
     }
 
 

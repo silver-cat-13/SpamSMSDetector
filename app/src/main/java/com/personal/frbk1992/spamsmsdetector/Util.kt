@@ -90,7 +90,7 @@ fun deleteAllPreferences(c: Context, pref: String) {
 
 
 fun getStringAtributes(floatArray: FloatArray) : String{
-    var attributes : String = ""
+    var attributes = ""
 
     if(floatArray[0] == -1.0F)
         attributes = "$attributes havingIPAddress = $PHISHING_S\n"

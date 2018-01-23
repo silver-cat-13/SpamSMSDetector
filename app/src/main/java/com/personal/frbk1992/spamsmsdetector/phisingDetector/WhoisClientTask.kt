@@ -84,7 +84,7 @@ class WhoisClientTask(val eventHandler: EventHandler, val urlString: String, val
     @Throws(SocketException::class, IOException::class)
     private fun queryWithWhoisServer(domainName: String, whoisServer: String): String {
 
-        var result = ""
+        var result: String
         val whois = WhoisClient()
         whois.connect(whoisServer)
         result = whois.query(domainName)
@@ -96,7 +96,7 @@ class WhoisClientTask(val eventHandler: EventHandler, val urlString: String, val
 
     private fun getWhoisServer(whois: String): String {
 
-        pattern = Pattern.compile(WHOIS_SERVER_PATTERN);
+        pattern = Pattern.compile(WHOIS_SERVER_PATTERN)
 
         var result = ""
 

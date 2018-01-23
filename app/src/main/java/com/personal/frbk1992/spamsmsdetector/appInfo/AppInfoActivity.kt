@@ -19,7 +19,7 @@ class AppInfoActivity : AppCompatActivity() {
 
         //call the SMSListFragment
         if (savedInstanceState == null) {
-            startFragment(AppInfoFragment.newInstance(), APP_INFO_FRAGMENT_TAG);
+            startFragment(AppInfoFragment.newInstance(), APP_INFO_FRAGMENT_TAG)
         }
 
 

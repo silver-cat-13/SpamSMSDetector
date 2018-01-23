@@ -51,9 +51,9 @@ class ConnectionAlexaTask(val eventHandler: EventHandler, val urlString: String,
 
             reader = BufferedReader(InputStreamReader(inputStream))
 
-            var line : String? = null
+            var line: String?
             while (true) {
-                line = reader?.readLine()
+                line = reader.readLine()
                 if (line == null) break //end of the text
                 buffer.append(line).append("\n")
                 if(DEBUG) Log.v(TAG, line)

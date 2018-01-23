@@ -25,10 +25,6 @@ class SMSListFragment : ListFragment(){
     lateinit var myListAdapter : MyListAdapter
     private  lateinit var smsList : ArrayList<SMSClass>
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         setHasOptionsMenu(true) // add the menu
@@ -49,7 +45,7 @@ class SMSListFragment : ListFragment(){
                 mListener)
 
         // le pasa el el adaptador al listview
-        listView.adapter = myListAdapter;
+        listView.adapter = myListAdapter
     }
 
 

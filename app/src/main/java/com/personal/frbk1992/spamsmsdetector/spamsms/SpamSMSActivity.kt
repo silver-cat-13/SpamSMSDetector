@@ -268,7 +268,7 @@ class SpamSMSActivity : AppCompatActivity(),
      * @return a Callable object that return an boolean
      */
     private fun callableSpamListClassifier(smsList: ArrayList<SMSClass>) : Callable<ArrayList<SMSClass>> {
-        return Callable<ArrayList<SMSClass>> {
+        return Callable {
             val smsSpamList = ArrayList<SMSClass>()
             //test each sms
             for (sms in smsList) {

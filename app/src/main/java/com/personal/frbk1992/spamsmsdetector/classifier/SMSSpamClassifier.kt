@@ -4,7 +4,7 @@ package com.personal.frbk1992.spamsmsdetector.classifier
 import android.content.ContentValues.TAG
 import android.content.res.AssetManager
 import android.util.Log
-import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
+import org.tensorflow.contrib.android.TensorFlowInferenceInterface
 import android.support.v4.os.TraceCompat
 import com.personal.frbk1992.spamsmsdetector.BAG_OF_WORDS
 import org.apache.commons.lang3.StringUtils

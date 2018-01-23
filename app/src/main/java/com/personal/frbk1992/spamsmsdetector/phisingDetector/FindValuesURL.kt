@@ -115,7 +115,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
         //check the code
         when(cr.code){
-            ConnectionResponse.constants.CODE_REGULAR_CONECTION ->{
+            ConnectionResponse.Constants.CODE_REGULAR_CONECTION ->{
                 //it was a regular conection, got the html file and the data
 
                 //check if it was a HTTPS connection, if it was check certificates
@@ -128,22 +128,22 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                 //check phishing site
                 checkBlackListPhishtank(cr)
             }
-            ConnectionResponse.constants.CODE_WHO_IS_CONECTION ->{
+            ConnectionResponse.Constants.CODE_WHO_IS_CONECTION ->{
                 //connection was using who is
                 parserWhoIsAnswer(cr)
 
             }
-            ConnectionResponse.constants.CODE_ALEXA_CONECTION ->{
+            ConnectionResponse.Constants.CODE_ALEXA_CONECTION ->{
                 //connection was using alexa
                 parserAlexaAnswer(cr)
 
             }
-            ConnectionResponse.constants.CODE_GOOGLE_INDEX_CONECTION ->{
+            ConnectionResponse.Constants.CODE_GOOGLE_INDEX_CONECTION ->{
                 //connection was using alexa
                 parserPageIndexAnswer(cr)
 
             }
-            ConnectionResponse.constants.CODE_REDIRECT_CONECTION ->{
+            ConnectionResponse.Constants.CODE_REDIRECT_CONECTION ->{
 
                 //conection was a redirection, check if the answer is empty or null
                 if(cr.answer == null || cr.answer!! == "" || !URLCheck(cr.answer!!).checkURL()){
@@ -176,7 +176,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                 Log.v(TAG, "redirection")
                 //the conection was a redirection, try to find is the new site is a redirection too
                 val urlRedirect = URLRedirect(this, cr.answer!!)
-                urlRedirect.execute(ConnectionResponse.constants.CODE_REDIRECT_CONECTION)
+                urlRedirect.execute(ConnectionResponse.Constants.CODE_REDIRECT_CONECTION)
             }
         }
     }
@@ -195,7 +195,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
     fun connectToServer(){
         val ct = ConnectionHTTPTask(this, url)
-        ct.execute(ConnectionResponse.constants.CODE_REGULAR_CONECTION)
+        ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONECTION)
     }
 
 
@@ -261,7 +261,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
         //make a conection using URLRedirect to find the final url
         val urlRedirect = URLRedirect(this, url)
-        urlRedirect.execute(ConnectionResponse.constants.CODE_REDIRECT_CONECTION)
+        urlRedirect.execute(ConnectionResponse.Constants.CODE_REDIRECT_CONECTION)
     }
 
 
@@ -273,21 +273,25 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
     private fun checkURLFeatures(){
 
         //check the amount of times a Redirection occur
-        if(valuesRedirection >= 2 ){
-            //redirection hight phisy
-            Log.v(TAG, "redirection high phishing")
-            redirect = PHISHING
-            savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
-        }else if(valuesRedirection == 1){
-            //redirection not that high suspicious
-            Log.v(TAG, "redirection suspicious")
-            redirect = SUSPICIOUS
-            savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
-        }else{
-            //redirection low legitimate
-            Log.v(TAG, "redirection low, legitimate")
-            redirect = LEGITIMATE
-            savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
+        when {
+            valuesRedirection >= 2 -> {
+                //redirection hight phisy
+                Log.v(TAG, "redirection high phishing")
+                redirect = PHISHING
+                savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
+            }
+            valuesRedirection == 1 -> {
+                //redirection not that high suspicious
+                Log.v(TAG, "redirection suspicious")
+                redirect = SUSPICIOUS
+                savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
+            }
+            else -> {
+                //redirection low legitimate
+                Log.v(TAG, "redirection low, legitimate")
+                redirect = LEGITIMATE
+                savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
+            }
         }
 
         val urlCheck = URLCheck(url)
@@ -331,26 +335,26 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                 Log.v(TAG, "checkDomainContainsHTTPS phishing")
                 savePrefence(ctx, URL_PREFERENCES, SSL_FINAL_STATE, sslFinalState)
                 val ct = ConnectionHTTPTask(this, url)
-                ct.execute(ConnectionResponse.constants.CODE_REGULAR_CONECTION)
+                ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONECTION)
             }
             else -> {
                 Log.v(TAG, "checkDomainContainsHTTPS not phishing")
                 val ct = ConnectionHTTPSTask(this, url)
-                ct.execute(ConnectionResponse.constants.CODE_REGULAR_CONECTION)
+                ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONECTION)
             }
         }
 
 
         //make a who is connection
         val whoIs = WhoisClientTask(this, url)
-        whoIs.execute(ConnectionResponse.constants.CODE_WHO_IS_CONECTION)
+        whoIs.execute(ConnectionResponse.Constants.CODE_WHO_IS_CONECTION)
 
         //make a alexa connection
         val alexa = ConnectionAlexaTask(this, url)
-        alexa.execute(ConnectionResponse.constants.CODE_ALEXA_CONECTION)
+        alexa.execute(ConnectionResponse.Constants.CODE_ALEXA_CONECTION)
 
         val googleIndex = ConnectionGoogleIndexTask(this, url)
-        googleIndex.execute(ConnectionResponse.constants.CODE_GOOGLE_INDEX_CONECTION)
+        googleIndex.execute(ConnectionResponse.Constants.CODE_GOOGLE_INDEX_CONECTION)
 
         //check features until all of then are different than -2
         checkFeatures()
@@ -512,14 +516,14 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
             val pattern = Pattern.compile("Registry Expiry Date: (.*)T\\d")
             val matcher = pattern.matcher(cr.answer!!)
-            var exprationDateString  = ""
+            var expirationDateString  = ""
             while (matcher.find()) {
-                exprationDateString = matcher.group(1)
+                expirationDateString = matcher.group(1)
             }
-            Log.v(TAG, "exprationDateString $exprationDateString")
+            Log.v(TAG, "exprationDateString $expirationDateString")
 
-            val formatter = SimpleDateFormat("yyyy-MM-dd")
-            val expDate = formatter.parse(exprationDateString);
+            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val expDate = formatter.parse(expirationDateString)
 
             if (date <= expDate) {
                 //the experiation date is good
@@ -563,8 +567,8 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
             }
             Log.v(TAG, "creationDateString $creationDateString")
 
-            val formatter = SimpleDateFormat("yyyy-MM-dd")
-            val creationDate = formatter.parse(creationDateString);
+            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val creationDate = formatter.parse(creationDateString)
 
             if (date >= creationDate) {
                 //the creation date is good
@@ -615,7 +619,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         var amountSrcOut  = 0
         val domain = URI(cr.url).host.removePrefix("www.")
         val matcher = Pattern.compile("(src=['\"]([^{'\"}]*)['\"])").matcher(data)
-        var match : String? = null
+        var match: String?
 
         while (matcher.find()) {
             match = matcher.group(2)
@@ -721,7 +725,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         var amountSrcIn  = 0.0
         var amountSrcOut  = 0.0
         val domain = URI(cr.url).host.removePrefix("www.")
-        var match : String? = null
+        var match: String?
         val matcher = Pattern.compile("(<link.+href=['\"]([^{'\"}]*)['\"])").matcher(data)
         while (matcher.find()) {
             match = matcher.group(2)
@@ -935,25 +939,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                 webtraffic.toFloat(), googleIndex.toFloat(), statisticalReport.toFloat())
     }
 
-    private fun getFeaturesArray_opt2() : FloatArray {
-        return floatArrayOf(havingIPAddress.toFloat(), urlLength.toFloat(),
-                shortiningService.toFloat(),
-                prefixSuffix.toFloat() , havingSubDomain.toFloat(), sslFinalState.toFloat(),
-                domainRegisterationLength.toFloat() , favicon.toFloat(), port.toFloat(),
-                httpsToken.toFloat(), requestURL.toFloat(), urlOfAnchor.toFloat(), linksInTags.toFloat(),
-                redirect.toFloat(), iFrame.toFloat(), ageOfDomain.toFloat(), dnsRecord.toFloat(),
-                webtraffic.toFloat(), googleIndex.toFloat())
-    }
 
-    private fun getFeaturesArray_opt3() : FloatArray {
-        return floatArrayOf(havingIPAddress.toFloat(), urlLength.toFloat(),
-                shortiningService.toFloat(),
-                prefixSuffix.toFloat() , havingSubDomain.toFloat(), sslFinalState.toFloat(),
-                domainRegisterationLength.toFloat() , favicon.toFloat(),
-                httpsToken.toFloat(), requestURL.toFloat(), urlOfAnchor.toFloat(), linksInTags.toFloat(),
-                redirect.toFloat(), iFrame.toFloat(), ageOfDomain.toFloat(), dnsRecord.toFloat(),
-                webtraffic.toFloat(), googleIndex.toFloat())
-    }
 
     private fun getFeaturesArray_opt4() : FloatArray {
         return floatArrayOf(havingIPAddress.toFloat(), urlLength.toFloat(),
@@ -964,13 +950,6 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                 redirect.toFloat(), iFrame.toFloat(), ageOfDomain.toFloat(), dnsRecord.toFloat(),
                 webtraffic.toFloat(), googleIndex.toFloat())
     }
-
-    private fun getFeaturesArray_new() : FloatArray {
-        return floatArrayOf(sslFinalState.toFloat(), requestURL.toFloat(), urlOfAnchor.toFloat(),
-                webtraffic.toFloat(), urlLength.toFloat(), ageOfDomain.toFloat(),
-                havingIPAddress.toFloat())
-    }
-
 
     interface OnFinishFeaturesPhishingWebsite{
 
