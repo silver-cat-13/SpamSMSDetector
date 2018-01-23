@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorEscalaGrisesGrisFondo"
-    tools:context="ca.uvic.frbk1992.spamsmsdetector.testurl.TestUrlActivityFragment">
+    tools:context="com.personal.frbk1992.spamsmsdetector.testurl.TestUrlActivityFragment">
 
     <LinearLayout
         android:layout_width="match_parent"

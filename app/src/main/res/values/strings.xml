@@ -31,7 +31,7 @@
     <string name="fragment_sms_detail_check_url_phishing_site_string">Check URL</string>
 
     <!-- Main Activity -->
-    <string name="title_activity_sms">Spam SMS Detector</string>
+    <string name="title_activity_sms">SMS List</string>
     <string name="alert_dialog_not_permission_title_string">Error</string>
     <string name="alert_dialog_not_permission_botton_string">OK</string>
     <string name="alert_dialog_not_permission_body_string">The application needs access to your SMS.</string>
@@ -48,10 +48,11 @@
     <string name="text_view_phishing_indicator_string">P</string>
 
     <!--String in sms detail-->
+    <string name="activity_sms_detail_title">SMS Content</string>
     <string name="fragment_sms_indicator_spam_phishing">SMS is SPAM</string>
     <string name="fragment_sms_indicator_spam">Spam</string>
     <string name="fragment_sms_indicator_phishing">contains a phishing URL</string>
-    <string name="title_activity_spam_sms">SMS Detail</string>
+    <string name="title_activity_spam_sms">SMS Spam List</string>
     <string name="fragment_sms_check_url_for_phishing_is_in_process">Work in process.</string>
     <string name="fragment_sms_check_url_for_phishing_start">Starting to check if URL is a phishing site.</string>
     <string name="fragment_sms_check_url_for_phishing_url_phishing">Warning: URL could be a phishing site.</string>

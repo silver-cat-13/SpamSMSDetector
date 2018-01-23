@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
-    tools:context="ca.uvic.frbk1992.spamsmsdetector.spamsms.SpamSMSActivity">
+    tools:context="com.personal.frbk1992.spamsmsdetector.spamsms.SpamSMSActivity">
 
     <LinearLayout
         android:layout_width="match_parent"

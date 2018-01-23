@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:fillViewport="true"
     android:background="@color/colorEscalaGrisesGrisFondo"
-    tools:context="ca.uvic.frbk1992.spamsmsdetector.sms.SMSDetailFragment">
+    tools:context="com.personal.frbk1992.spamsmsdetector.sms.SMSDetailFragment">
 
 
     <FrameLayout
