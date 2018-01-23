@@ -24,7 +24,7 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInteractionListener{
 
 
-    private val TAG = this.javaClass.simpleName
+    //private val TAG = this.javaClass.simpleName
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
