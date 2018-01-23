@@ -9,67 +9,7 @@
 
     <!-- Strings related to Settings -->
 
-    <!-- Example General settings -->
-    <string name="pref_header_general">General</string>
 
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact
-        based on your message history
-    </string>
-
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
-
-    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
-    <string-array name="pref_example_list_titles">
-        <item>Always</item>
-        <item>When possible</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_example_list_values">
-        <item>1</item>
-        <item>0</item>
-        <item>-1</item>
-    </string-array>
-
-    <!-- Example settings for Data & Sync -->
-    <string name="pref_header_data_sync">Data &amp; sync</string>
-
-    <string name="pref_title_sync_frequency">Sync frequency</string>
-    <string-array name="pref_sync_frequency_titles">
-        <item>15 minutes</item>
-        <item>30 minutes</item>
-        <item>1 hour</item>
-        <item>3 hours</item>
-        <item>6 hours</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_sync_frequency_values">
-        <item>15</item>
-        <item>30</item>
-        <item>60</item>
-        <item>180</item>
-        <item>360</item>
-        <item>-1</item>
-    </string-array>
-
-    <string-array name="list_preference_entries">
-        <item>Entry 1</item>
-        <item>Entry 2</item>
-        <item>Entry 3</item>
-    </string-array>
-
-    <string-array name="list_preference_entry_values">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </string-array>
-
-    <string-array name="multi_select_list_preference_default_value" />
-
-    <string name="pref_title_system_sync_settings">System sync settings</string>
-
-    <!-- Example settings for Notifications -->
     <string name="pref_header_notifications">Notifications</string>
 
     <string name="pref_title_new_message_notifications">New message notifications</string>
@@ -82,6 +22,7 @@
 
     <!--Menu show in the list fragment-->
     <string name="fragment_list_menu_try_spam_sms_string">Get spam SMS</string>
+    <string name="fragment_list_menu_information_app">Information</string>
 
     <!--Menu show in the spam sms list fragment-->
     <string name="fragment_list_menu_delete_spam_sms_string">Delete all my Spam SMS</string>
@@ -89,19 +30,17 @@
     <!--Menu show in the spam sms detail when the sms has an url fragment-->
     <string name="fragment_sms_detail_check_url_phishing_site_string">Check URL</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_sms">SMSActivity</string>
-
     <!-- Main Activity -->
+    <string name="title_activity_sms">Spam SMS Detector</string>
     <string name="alert_dialog_not_permission_title_string">Error</string>
     <string name="alert_dialog_not_permission_botton_string">OK</string>
     <string name="alert_dialog_not_permission_body_string">The application needs access to your SMS.</string>
 
 
     <!--Spam SMS List Fragment-->
-    <string name="text_view_spam_sms_indicator_string">You have # spam SMS.</string>
-    <string name="text_view_spam_sms_indicator_no_spam_string">You don\'t have any spam sms.</string>
+    <string name="fragment_spam_sms_text_view_spam_sms_loading">Classifying all your SMS.</string>
+    <string name="fragment_spam_sms_text_view_spam_sms_indicator_string">You have # spam SMS.</string>
+    <string name="fragment_spam_sms_text_view_spam_sms_indicator_no_spam_string">You don\'t have any spam sms.</string>
 
 
     <!--String in List-->
@@ -109,13 +48,17 @@
     <string name="text_view_phishing_indicator_string">P</string>
 
     <!--String in sms detail-->
-    <string name="fragment_sms_indicatpr_spam_phishing">SMS is</string>
-    <string name="fragment_sms_indicatpr_spam">Spam</string>
-    <string name="fragment_sms_indicatpr_phishing">contains a phishing URL</string>
-    <string name="title_activity_spam_sms">SpamSMSActivity</string>
+    <string name="fragment_sms_indicator_spam_phishing">SMS is SPAM</string>
+    <string name="fragment_sms_indicator_spam">Spam</string>
+    <string name="fragment_sms_indicator_phishing">contains a phishing URL</string>
+    <string name="title_activity_spam_sms">SMS Detail</string>
+    <string name="fragment_sms_check_url_for_phishing_is_in_process">Work in process.</string>
+    <string name="fragment_sms_check_url_for_phishing_start">Starting to check if URL is a phishing site.</string>
+    <string name="fragment_sms_check_url_for_phishing_url_phishing">Warning: URL could be a phishing site.</string>
+    <string name="fragment_sms_check_url_for_phishing_url_not_phishing">Low chances URL is not a phishing site.</string>
 
     <!--String menu navigation drawer main activity-->
-    <string name="navigation_drawer_activity_main_test_url">Test URL</string>
+    <string name="navigation_drawer_activity_main_app_info">Information</string>
     <string name="title_activity_test_url">TestUrlActivity</string>
 
 
@@ -123,4 +66,28 @@
     <string name="edit_text_fragment_test_url_url_string">URL</string>
     <string name="button_fragment_test_url_test_string">Test URL</string>
 
+    <!--Warning Notifications-->
+    <string name="notification_message_warning_title">Warning</string>
+    <string name="notification_message_warning_spam_message">You just receive a possible Spam SMS</string>
+    <string name="notification_message_warning_spam_phishing_message">You just receive a possible Spam SMS
+        that could contain a URL linked to a Phishing Site</string>
+
+
+    <!--App Info Activity-->
+    <string name="title_activity_info_app">Information</string>
+
+    <!--App Info Fragment-->
+    <string name="fragment_app_info_info_app">Spam SMS Detector V0.1 was developed by Fernando Rafael Berra Kossik.
+        \n\nUsing machine learning, the application detects if a SMS is spam or not and also if an URL is linked
+        to a phishing site. The application uses the Tensorflow library for the machine learning.
+        It also uses two models that were preconfigured for the app, the datasets used to create
+        the models were obtained from the \"UCI Machine Learning Repository\". The Spam SMS dataset
+        was created by Tiago A. Almeida, José María Gómez Hidalgo, Tiago P. Silva; the
+        Phsihing Website dataset was created by Rami M. Mohammad, Fadi Thabtah, Lee McCluskey.
+        \n\nThe Spam SMS Detector logo was created by Fernando Enrique Berra Kossik.</string>
+    <string name="fragment_app_info_info_app_pdf_intro">A complete detail of the application can be found at:</string>
+    <string name="fragment_app_info_info_app_pdf_link">http://web.uvic.ca/~frbk1992/project/csc578report.pdf</string>
+    <string name="fragment_app_info_apache_libs_title">Open sources licenses</string>
+    <string name="fragment_app_info_apache_libs">Tensorflow, RxJava, RxAndroid, RxKotlin, RxBinding,
+        RxPermissions, Apache Commons Net, Apache Commons Lang</string>
 </resources>

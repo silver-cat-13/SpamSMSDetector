@@ -79,7 +79,7 @@ class SMSListFragment : ListFragment(){
      * Tell the fragment which menu it will load
      */
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.fragment_list_menu, menu)
+        inflater.inflate(R.menu.fragment_sms_list_menu, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -91,6 +91,10 @@ class SMSListFragment : ListFragment(){
             R.id.fragment_list_menu_test_spam_sms_id ->{
                 //the test option was selected
                 mListener?.testAllSMSForSpam(smsList)
+            }
+            R.id.fragment_list_menu_information_app -> {
+                //go to the information activity
+                mListener?.goInfoApp()
             }
         }
         return false
@@ -128,6 +132,9 @@ class SMSListFragment : ListFragment(){
 
         //test all the sms to look for spam sms
         fun testAllSMSForSpam(smsList : ArrayList<SMSClass>)
+
+        //go to the information app activity
+        fun goInfoApp()
     }
 
     companion object {

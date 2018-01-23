@@ -3,16 +3,23 @@ package ca.uvic.frbk1992.spamsmsdetector.sms
 import android.content.Context
 import android.support.v4.app.Fragment
 import android.os.Bundle
+import android.support.design.widget.FloatingActionButton
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import ca.uvic.frbk1992.spamsmsdetector.R
 import ca.uvic.frbk1992.spamsmsdetector.SMSClass
+import ca.uvic.frbk1992.spamsmsdetector.classifier.SMSSpamClassifier
 import ca.uvic.frbk1992.spamsmsdetector.main.MyListAdapter
 import ca.uvic.frbk1992.spamsmsdetector.main.SMSListFragment
 import ca.uvic.frbk1992.spamsmsdetector.phisingDetector.FindValuesURL
 import ca.uvic.frbk1992.spamsmsdetector.showToast
+import com.jakewharton.rxbinding2.view.RxView
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_sms.*
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * A placeholder fragment containing a simple view.
@@ -23,6 +30,10 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
 
     val ARG_SMS = "sms"
     var sms : SMSClass? = null
+
+
+    var phishingCheck = false //this variable indicate if the button to check if the url is phishing was pressed
+    var phishingInProcess = false //this variable indicate if the app is checking if the URL is phishing is in process
 
     private var mListener: OnSMSDetailFragmentInteractionListener? = null //listener
 
@@ -41,7 +52,53 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
         //set the title and content of the sms
         fragment_sms_title.text = sms?.title
         fragment_sms_content.text = sms?.content
-        if(sms?.spam!!) fragment_sms_indicatpr_spam_phishing.text = "SMS is Spam!!!"
+
+        //warn the user about the spam sms en case it is spam
+        if(sms?.spam!!) {
+            //SMS is spam
+            fragment_sms_indicatpr_spam_phishing.text = getString(R.string.fragment_sms_indicator_spam_phishing)
+
+            //check if SMS has an URL
+            if( sms!!.url != ""){
+                //spam sms has URL
+                fragment_sms_floating_button_test_phishing_url.visibility = View.VISIBLE
+                //use RxJava to check if the URL is a phishing site on the click in the floating button
+            }
+        }
+
+        // check if it is phishing the URL
+        RxView.clicks(fragment_sms_floating_button_test_phishing_url)
+                .throttleFirst(1, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ _ ->
+                    //Perform some work here//
+                    if(sms!!.phishing){
+                        //site is phishing
+                        showToast(activity!!.applicationContext,
+                                getString(R.string.fragment_sms_check_url_for_phishing_url_phishing))
+                        phishingInProcess = false
+                        phishingCheck = true
+                    }else if(phishingCheck && !sms!!.phishing){
+                        //it was already checked and site is not phishing
+                        showToast(activity!!.applicationContext,
+                                getString(R.string.fragment_sms_check_url_for_phishing_url_not_phishing))
+                    }else if(!phishingCheck && phishingInProcess){
+                        //button was pressed, check is in process
+                        showToast(activity!!.applicationContext,
+                                getString(R.string.fragment_sms_check_url_for_phishing_is_in_process))
+                    }else if(!phishingCheck && !phishingInProcess){
+                        //Phishing is not in process and the button hasn't pressed, until now
+                        showToast(activity!!.applicationContext,
+                                getString(R.string.fragment_sms_check_url_for_phishing_start))
+
+                        //check if URL is phishing here
+                        FindValuesURL(context!!, fragment = this, url = sms!!.url, _id= sms!!.id).getFeatures()
+                        phishingInProcess = true
+
+                    }
+                })
+
+
     }
 
     override fun onAttach(context: Context?) {
@@ -86,10 +143,28 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
 
 
     /**
-     * Function called when the SMS given is spam
+     * Function called when the Activity when the SMS given is spam
      */
     fun smsIsSpam(){
-        showToast(context!!, "SMS is Spam")
+        //showToast(context!!, getString(R.string.fragment_sms_indicator_spam_phishing))
+        fragment_sms_indicatpr_spam_phishing.text = getString(R.string.fragment_sms_indicator_spam_phishing)
+    }
+
+    /**
+     * Function called by the Activity when the SMS is SPAM and contains an URL
+     */
+    fun smsContainsURL(){
+        fragment_sms_floating_button_test_phishing_url.visibility = View.VISIBLE
+    }
+
+    fun sitePhishingResult(result : Boolean){
+        sms!!.phishing = result
+
+        //site was already checked, change to true
+        phishingCheck = true
+
+        //the phishing process is done, change to false
+        phishingInProcess = false
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,8 +192,6 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
      */
     interface OnSMSDetailFragmentInteractionListener{
         fun detectPhishingSite(features : FloatArray) : Boolean
-
-        fun detectSpamSMS()
     }
 
     companion object {

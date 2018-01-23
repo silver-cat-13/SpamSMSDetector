@@ -1,37 +1,18 @@
 package ca.uvic.frbk1992.spamsmsdetector.main
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.support.design.widget.NavigationView
 import android.support.v4.app.Fragment
-import android.support.v4.view.GravityCompat
-import android.support.v7.app.ActionBarDrawerToggle
-import android.util.Log
-import android.view.MenuItem
+import android.support.v7.app.AppCompatActivity
 import ca.uvic.frbk1992.spamsmsdetector.*
-import ca.uvic.frbk1992.spamsmsdetector.classifier.PhishingClassifier
-import ca.uvic.frbk1992.spamsmsdetector.classifier.SMSSpamClassifier
-import ca.uvic.frbk1992.spamsmsdetector.phisingDetector.FindValuesURL
+import ca.uvic.frbk1992.spamsmsdetector.app_info.AppInfoActivity
 import ca.uvic.frbk1992.spamsmsdetector.sms.SMSActivity
 import ca.uvic.frbk1992.spamsmsdetector.spamsms.SpamSMSActivity
-import ca.uvic.frbk1992.spamsmsdetector.testurl.TestUrlActivity
 import com.tbruyelle.rxpermissions2.RxPermissions
-import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
-import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
-import io.reactivex.Observer
-import io.reactivex.disposables.Disposable
-import io.reactivex.rxkotlin.toObservable
-import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
-import java.util.*
-import java.util.concurrent.Executors
-import kotlin.collections.ArrayList
 
 
 /**
@@ -39,31 +20,23 @@ import kotlin.collections.ArrayList
  * show
  * @see SMSListFragment
  */
-class MainActivity : RxAppCompatActivity(), SMSListFragment.OnSMSListFragmentInteractionListener,
-        FindValuesURL.OnFinishFeaturesPhishingWebsite, NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInteractionListener{
 
 
     private val TAG = this.javaClass.simpleName
 
-    private var phishingClassifier: PhishingClassifier? = null
-    private var smsClassifier: SMSSpamClassifier? = null
-    private val executor = Executors.newSingleThreadExecutor()
-
-    var test : FindValuesURL? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // closes the activity in case another activity calls it using the EXIT intent value
+        // this is use when an activity is closing all the activities
+        if (intent.getBooleanExtra(EXIT, false)) {
+            finish()
+        }
+
         setSupportActionBar(toolbar)
-
-        val toggle = ActionBarDrawerToggle(
-                this, drawer_layout, toolbar, R.string.navigation_drawer_open,
-                R.string.navigation_drawer_close)
-        drawer_layout.addDrawerListener(toggle)
-        toggle.syncState()
-
-        nav_view.setNavigationItemSelectedListener(this)
 
         //create the RxPermission
         val rxPermission = RxPermissions(this)
@@ -87,33 +60,7 @@ class MainActivity : RxAppCompatActivity(), SMSListFragment.OnSMSListFragmentInt
     }
 
 
-    /**
-     * this function is called when all the features has been detected
-     */
-    override fun siteFeatures(ctx: Context, url : String,features : FloatArray, _id : Int){
 
-        Log.v(TAG, "features ${Arrays.toString(features)}")
-
-        //Log.v(TAG, "features ${Arrays.toString(f)}")
-       //Log.v(TAG, "features ${getStringAtributes(f)}")
-        if(phishingClassifier!!.isPhishing(features)) {
-            Log.e(TAG, "The Site $url is phishing")
-        }
-        else
-            Log.v(TAG, "Site is $url NOT phishing")
-    }
-
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // Handle navigation view item clicks here.
-        when (item.itemId) {
-            R.id.test_url -> {
-                goTestUrl()
-            }
-        }
-
-        drawer_layout.closeDrawer(GravityCompat.START)
-        return true
-    }
 
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<out String>,
@@ -167,6 +114,14 @@ class MainActivity : RxAppCompatActivity(), SMSListFragment.OnSMSListFragmentInt
         startActivity(intent)
     }
 
+    /**
+     * function that called the TestUrlActivity via intent
+     */
+    override fun goInfoApp() {
+        val intent = Intent(baseContext, AppInfoActivity::class.java)
+        startActivity(intent)
+    }
+
 
 
 
@@ -208,13 +163,7 @@ class MainActivity : RxAppCompatActivity(), SMSListFragment.OnSMSListFragmentInt
 
 
 
-    /**
-     * function that called the TestUrlActivity via intent
-     */
-    fun goTestUrl() {
-        val intent = Intent(baseContext, TestUrlActivity::class.java)
-        startActivity(intent)
-    }
+
 
     /**
      * Show a dialog that ends the activity when it dismissed
@@ -222,7 +171,7 @@ class MainActivity : RxAppCompatActivity(), SMSListFragment.OnSMSListFragmentInt
      * @param content el mensaje
      * @param bottonMsg el boton neutral
      */
-    fun showNeutralDialogFinishActivity(title: String, content: String, bottonMsg: String) {
+    private fun showNeutralDialogFinishActivity(title: String, content: String, bottonMsg: String) {
         //Dialogo de alerta que aparece cuando se preciona acerca de
         val alert = android.app.AlertDialog.Builder(this)
                 .setTitle(title)

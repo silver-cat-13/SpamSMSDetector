@@ -3,12 +3,11 @@ package ca.uvic.frbk1992.spamsmsdetector.sms
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import ca.uvic.frbk1992.spamsmsdetector.*
 import ca.uvic.frbk1992.spamsmsdetector.classifier.PhishingClassifier
 import ca.uvic.frbk1992.spamsmsdetector.classifier.SMSSpamClassifier
-import com.trello.rxlifecycle2.android.RxLifecycleAndroid
-import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 import io.reactivex.Single
 import io.reactivex.SingleObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -17,9 +16,9 @@ import io.reactivex.schedulers.Schedulers
 
 import kotlinx.android.synthetic.main.activity_sms.*
 import org.apache.commons.lang3.StringUtils
-import java.util.concurrent.Executors
+import java.util.concurrent.Callable
 
-class SMSActivity : RxAppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentInteractionListener {
+class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentInteractionListener {
 
     var sms : SMSClass? = SMSClass()
 
@@ -50,19 +49,26 @@ class SMSActivity : RxAppCompatActivity(), SMSDetailFragment.OnSMSDetailFragment
             sms = savedInstanceState.getParcelable(SMS);
         }
 
-        initTensorFlowAndLoadModel()
+        //get the URL, in case there are no URL it stays at ""
+        sms!!.url = SMSSpamClassifier.getUrlFromSMS(sms!!.content)
 
         //call the SMSListFragment
         if (savedInstanceState == null) {
             startFragment(SMSDetailFragment.newInstance(sms!!), SMS_DETAIL_FRAGMENT_TAG);
         }
+
+
+        initTensorFlowAndLoadModel()
+
     }
 
     override fun onDestroy() {
         Single.just(DESTROY_CLASSIFIER)
                 .subscribeOn(Schedulers.newThread())
-                .compose(RxLifecycleAndroid.bindActivity(lifecycle()))
-                .subscribe(getSimpleObserverInitPhishingClassifier(this))
+                .subscribe(singlePhishingClassifier(this))
+        Single.just(DESTROY_CLASSIFIER)
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(singleSMSSPamClassifier(this))
         super.onDestroy()
     }
 
@@ -88,18 +94,20 @@ class SMSActivity : RxAppCompatActivity(), SMSDetailFragment.OnSMSDetailFragment
     override fun detectPhishingSite(features: FloatArray): Boolean {
 
         //create observable that check if the features correspond to a phishing site
-        val featuresObservable = Single.fromCallable{phishingClassifier!!.isPhishing(features)}
+        val featuresObservable = Single.fromCallable{ phishingClassifier!!.isPhishing(features) }
         featuresObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : SingleObserver<Boolean>{
                     override fun onSuccess(t: Boolean) {
-                        if(t) showToast(application, "Warning: URL is phishing")
-                        else showToast(application, "URL is not phishing")
+                        //tell the fragment the answer about thephishing site
+                        val fragment = supportFragmentManager.findFragmentById(R.id.sms_container) as? SMSDetailFragment
+                        fragment?.sitePhishingResult(t)
                     }
 
                     override fun onError(e: Throwable) {
-                        throw RuntimeException("Error with TensorFlow!", e)
+                        Log.e(TAG, "${e.message}")
+                        throw RuntimeException("Error with TensorFlow! ${e.message}", e)
                     }
 
                     override fun onSubscribe(d: Disposable) {
@@ -110,53 +118,6 @@ class SMSActivity : RxAppCompatActivity(), SMSDetailFragment.OnSMSDetailFragment
 
         return false
 
-    }
-
-    /**
-     * This function is called to detect if the sms is spam or not
-     * the function is called after the view is done on the fragment and
-     * the detection is done on a new thread using RxJava
-     * In case the SMS is Spam the Activity called a function in the
-     * fragment to warn the user about the Spam SMS.
-     *
-     * The SMS used is the one received by the activity
-     */
-    override fun detectSpamSMS(){
-
-        //get the features for the spam classifier
-        val featuresSMS = FloatArray(SMSSpamClassifier.ATTRIBUTE_AMOUNT)
-        for (i in BAG_OF_WORDS.indices){
-            //count the amount of words in the sms
-            val amountWords = StringUtils.countMatches(sms!!.content, BAG_OF_WORDS[i])
-            featuresSMS[i] = amountWords.toFloat()
-        }
-
-        //create observable that check if the features correspond to a phishing site
-        val featuresObservable = Single.fromCallable{smsSpamClassifier!!.isSpam(featuresSMS)}
-        featuresObservable
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object : SingleObserver<Boolean>{
-                    override fun onSuccess(t: Boolean) {
-                        if(t) {
-                            //SMS is Spam
-                            val fragment : SMSDetailFragment
-                                    = fragmentManager.findFragmentById(R.id.sms_container) as SMSDetailFragment
-
-                            fragment.smsIsSpam()
-
-                        }
-                    }
-
-                    override fun onError(e: Throwable) {
-                        throw RuntimeException("Error with TensorFlow!", e)
-                    }
-
-                    override fun onSubscribe(d: Disposable) {
-                        //onSubscribe
-                    }
-
-                })
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,54 +144,171 @@ class SMSActivity : RxAppCompatActivity(), SMSDetailFragment.OnSMSDetailFragment
 
 
     /**
-     * This funcion initialize the model used for clarifie the ulr as a phishing site
+     * This function inizialize the classifiers but only if there is need to. If the activity
+     * was called on an Spam SMS the SMS Spam classifier won't be called, if it is unknown if the
+     * SMS is Spam, the Spam classifier will be created and the sms will be check if it is spam or
+     * not. if the SMS don't have an URL, (or the sms is not Spam) the phishing classifier
+     * won't be called either
      */
     private fun initTensorFlowAndLoadModel() {
-        //initialize the phishing model
-        Single.just(INIT_CLASSIFIER)
-                .subscribeOn(Schedulers.newThread())
-                .compose(RxLifecycleAndroid.bindActivity(lifecycle()))
-                .subscribe(getSimpleObserverInitPhishingClassifier(this))
+        if(!sms!!.spam) {
+            //SMS is not Spam,
+            Single.fromCallable(callableSpamClassifier(this))
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(getSimpleSpamClassifier())
+        }else if(sms!!.url != ""){
+
+            if(sms!!.url != "") {
+                //init phishing model
+                Single.just(INIT_CLASSIFIER)
+                        .subscribeOn(Schedulers.newThread())
+                        .subscribe(singlePhishingClassifier(this))
+            }
+
+            //SMS does contains URL
+            //tell the fragment about it
+            val fragment = supportFragmentManager.findFragmentById(R.id.sms_container) as? SMSDetailFragment
+            fragment?.smsContainsURL()
+        }
     }
 
 
     /**
-     * Get a simple observer from a class Classifier
+     * This function return a single of RxJava where create/destroy the PhishingClassifier
+     * depending on the integer observable
      */
-    private fun getSimpleObserverInitPhishingClassifier(context: Context): SingleObserver<Int> {
+    private fun singlePhishingClassifier(context: Context): SingleObserver<Int> {
         return object : SingleObserver<Int>{
 
             override fun onSuccess(t: Int) {
+                Log.e(TAG, "Thread Name 2 ${Thread.currentThread().name}")
                 when(t){
                     INIT_CLASSIFIER ->{
-                        Log.v(TAG, "Creating model for phishing classifier")
+                        Log.i(TAG, "Creating model for phishing classifier")
+
                         phishingClassifier = PhishingClassifier().create(
                                 assetManager = context.assets,
                                 modelFilename = PHISHING_MODEL_FILE,
                                 inputName = INPUT,
                                 outputName = OUTPUT)
 
-                        smsSpamClassifier = SMSSpamClassifier().create(
-                                assetManager = context.assets,
-                                modelFilename = SMS_MODEL_FILE,
-                                inputName = INPUT,
-                                outputName = OUTPUT)
-                    }
-                    DESTROY_CLASSIFIER ->{
-                        Log.v(TAG, "Closing phishing model")
-                        phishingClassifier!!.close()
-                        smsSpamClassifier!!.close()
+                    }DESTROY_CLASSIFIER ->{
+                        Log.i(TAG, "Closing phishing classifier")
+                        phishingClassifier?.close()
                     }
                 }
-
             }
 
             override fun onError(e: Throwable) {
+                Log.e(TAG, "Error with TensorFlow ${e.message}")
                 throw RuntimeException("Error with TensorFlow!", e)
             }
 
             override fun onSubscribe(d: Disposable) {
                 // onSubscribe
+            }
+
+
+        }
+    }
+
+    /**
+     * This function return a single of RxJava where create/destroy the SMSSpamClassifier
+     * depending on the integer observable
+     */
+    private fun singleSMSSPamClassifier(context: Context): SingleObserver<Int> {
+        return object : SingleObserver<Int>{
+
+            override fun onSuccess(t: Int) {
+                Log.e(TAG, "Thread Name 3 ${Thread.currentThread().name}")
+                when(t){
+                    INIT_CLASSIFIER ->{
+                        Log.i(TAG, "Creating model for Spam classifier")
+
+                        smsSpamClassifier = SMSSpamClassifier().create(
+                                assetManager = context.assets,
+                                modelFilename = SMS_MODEL_FILE,
+                                inputName = INPUT,
+                                outputName = OUTPUT)
+
+                    }DESTROY_CLASSIFIER ->{
+                        Log.i(TAG, "Closing Spam classifier")
+                        smsSpamClassifier?.close()
+                    }
+                }
+            }
+
+            override fun onError(e: Throwable) {
+                Log.e(TAG, "Error with TensorFlow ${e.message}")
+                throw RuntimeException("Error with TensorFlow!", e)
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                // onSubscribe
+            }
+
+
+        }
+    }
+
+
+
+    /**
+     * This function return a callable of RxJava where create the SMSSpamClassifier.
+     * Also, check if the sms is spam or not, in the case is spam return true, false otherwise
+     */
+    private fun callableSpamClassifier(context: Context): Callable<Boolean> {
+        return Callable<Boolean> {
+            Log.v(TAG, "Creating model for Spam classifier")
+            smsSpamClassifier = SMSSpamClassifier().create(
+                    assetManager = context.assets,
+                    modelFilename = SMS_MODEL_FILE,
+                    inputName = INPUT,
+                    outputName = OUTPUT)
+
+            smsSpamClassifier!!.isSpam(SMSSpamClassifier.getFeaturesForSpamClassifier(sms!!.content))
+        }
+    }
+
+
+    /**
+     * Get a simple observer from the spam classifier, if the observable is true it means the sms
+     * is spam, false otherwise. In the case the sms is true the activity call a function in the
+     * fragment to warn the user about it.
+     */
+    private fun getSimpleSpamClassifier(): SingleObserver<Boolean> {
+        return object : SingleObserver<Boolean>{
+
+            override fun onSuccess(t: Boolean) {
+                if (t) {
+                    if(sms!!.url != "" && phishingClassifier == null) {
+                        //init phishing model
+                        Single.just(INIT_CLASSIFIER)
+                                .subscribeOn(Schedulers.newThread())
+                                .subscribe(singlePhishingClassifier(applicationContext))
+                    }
+
+                    //SMS is Spam
+                    val fragment = supportFragmentManager.findFragmentById(R.id.sms_container) as? SMSDetailFragment
+                    fragment?.smsIsSpam()
+
+                    if(sms!!.url != ""){
+                        //SMS does contains URL
+                        //tell the fragment about it
+                        fragment?.smsContainsURL()
+                    }
+
+                }
+            }
+
+            override fun onError(e: Throwable) {
+                Log.e(TAG, "Error creating the spam classifier ${e.message}")
+                throw RuntimeException("Error creating the spam classifier ${e.message}", e)
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                //onSubscribe
             }
 
 

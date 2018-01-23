@@ -1,7 +1,6 @@
 package ca.uvic.frbk1992.spamsmsdetector.spamsms
 
 import android.content.Context
-import android.support.v4.app.Fragment
 import android.os.Bundle
 import android.support.v4.app.ListFragment
 import android.view.*
@@ -19,7 +18,6 @@ class SpamSMSActivityFragment : ListFragment() {
     private var mListener: OnSMSSpamListFragmentInteractionListener? = null //listener
     private var mListView : ListView? = null
     lateinit var myListAdapter : SpamSMSListAdapter
-    private  lateinit var smsList : ArrayList<SMSClass>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -31,21 +29,8 @@ class SpamSMSActivityFragment : ListFragment() {
         // ubica la vista en el fragment_notes_list.xml
         mListView = view.findViewById(android.R.id.list)
 
-        //get all spam the sms
-        smsList =  mListener!!.getSpamSMS()
-
-        //get the number of the
-        val value = context!!.getString(R.string.text_view_spam_sms_indicator_string)
-                .replace("#", smsList.size.toString())
-        text_view_spam_sms_list_indicator.text = value
-
-        //inicia el adaptador
-        myListAdapter = SpamSMSListAdapter(this.context,
-                smsList,
-                mListener)
-
-        // le pasa el el adaptador al listview
-        listView.adapter = myListAdapter;
+        //getAll the spam SMS
+        mListener?.showAllSpamSMS()
     }
 
     override fun onAttach(context: Context?) {
@@ -72,7 +57,7 @@ class SpamSMSActivityFragment : ListFragment() {
      * Tell the fragment which menu it will load
      */
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.fragment_list_menu, menu)
+        inflater.inflate(R.menu.fragment_spam_sms_list_menu, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -81,12 +66,34 @@ class SpamSMSActivityFragment : ListFragment() {
      */
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when(item?.itemId){
-            R.id.fragment_list_menu_test_spam_sms_id ->{
+            R.id.fragment_spam_list_menu_information_app ->{
                 //the test option was selected
-                mListener?.deleteAllSpamSMS(smsList)
+                mListener?.goInfoApp()
             }
         }
         return false
+    }
+
+
+    fun showSpamSMS(smsList: ArrayList<SMSClass>){
+        fragment_spam_sms_progress_bar_loading.visibility = View.GONE
+        if(smsList.isEmpty()){
+            text_view_spam_sms_list_indicator.text =
+                    context!!.getString(R.string.fragment_spam_sms_text_view_spam_sms_indicator_no_spam_string)
+        }else {
+            //get the number of the
+            val value = context!!.getString(R.string.fragment_spam_sms_text_view_spam_sms_indicator_string)
+                    .replace("#", smsList.size.toString())
+            text_view_spam_sms_list_indicator.text = value
+        }
+
+        //inicia el adaptador
+        myListAdapter = SpamSMSListAdapter(this.context,
+                smsList,
+                mListener)
+
+        // le pasa el el adaptador al listview
+        listView.adapter = myListAdapter;
     }
 
 
@@ -96,13 +103,13 @@ class SpamSMSActivityFragment : ListFragment() {
      */
     interface OnSMSSpamListFragmentInteractionListener{
         //get all sms
-        fun getSpamSMS() : ArrayList<SMSClass>
+        fun showAllSpamSMS()
 
         //show the detail of a sms
         fun showSpamSMS(sms : SMSClass)
 
-        //show the detail of a sms
-        fun deleteAllSpamSMS(smsList : ArrayList<SMSClass>)
+        //go to the information app activity
+        fun goInfoApp()
     }
 
     companion object {

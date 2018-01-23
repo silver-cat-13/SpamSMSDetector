@@ -44,6 +44,25 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="ca.uvic.frbk1992.spamsmsdetector.main.MainActivity" />
         </activity>
+        <activity
+            android:name=".testurl.TestUrlActivity"
+            android:label="@string/title_activity_test_url"
+            android:parentActivityName=".main.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ca.uvic.frbk1992.spamsmsdetector.main.MainActivity" />
+        </activity>
+        <activity
+            android:name=".app_info.AppInfoActivity"
+            android:label="@string/title_activity_info_app"
+            android:parentActivityName=".main.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ca.uvic.frbk1992.spamsmsdetector.main.MainActivity" />
+        </activity>
 
         <receiver
             android:name=".sms.SMSReceiver"
@@ -54,17 +73,6 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
-
-        <activity
-            android:name=".testurl.TestUrlActivity"
-            android:label="@string/title_activity_test_url"
-            android:parentActivityName=".main.MainActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="ca.uvic.frbk1992.spamsmsdetector.main.MainActivity" />
-        </activity>
     </application>
 
 </manifest>

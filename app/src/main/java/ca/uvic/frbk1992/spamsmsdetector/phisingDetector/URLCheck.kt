@@ -124,7 +124,6 @@ class URLCheck(val url : String){
     fun getDomain() : String{
         if(havingIpAddress() == PHISHING)
             return url.removePrefix("www.").removePrefix("http.//")
-
         return URI(url).host.removePrefix("www.")
     }
 

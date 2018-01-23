@@ -1,11 +1,17 @@
 package ca.uvic.frbk1992.spamsmsdetector.classifier
 
 
+import android.content.ContentValues.TAG
+import android.content.Context
 import android.content.res.AssetManager
 import android.util.Log
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 import android.support.v4.os.TraceCompat
+import ca.uvic.frbk1992.spamsmsdetector.BAG_OF_WORDS
+import ca.uvic.frbk1992.spamsmsdetector.phisingDetector.FindValuesURL
+import org.apache.commons.lang3.StringUtils
 import java.util.*
+import java.util.regex.Pattern
 
 
 /**
@@ -15,9 +21,6 @@ import java.util.*
  */
 class SMSSpamClassifier : Classifier {
 
-    companion object {
-        const val ATTRIBUTE_AMOUNT = 141
-    }
 
     private val TAG = this.javaClass.simpleName
 
@@ -45,9 +48,13 @@ class SMSSpamClassifier : Classifier {
                inputName : String,
                outputName : String) : SMSSpamClassifier {
 
+        Log.i(TAG, "Opening Spam Classifier")
+
         val c = SMSSpamClassifier()
         c.inputName = inputName
         c.outputName = outputName
+
+
 
         c.inferenceInterface = TensorFlowInferenceInterface(assetManager, modelFilename)
 
@@ -152,6 +159,60 @@ class SMSSpamClassifier : Classifier {
 
         return fa
     }
+
+    /**
+     * Static methods
+     */
+    companion object {
+
+        const val ATTRIBUTE_AMOUNT = 141
+
+        /**
+         * This function get the features for the Spam Classifier, the function uses the Bag of Word
+         * to get the features.
+         * @param content: is the content of the sms
+         * @return return a FloatArray of the value of each attribute
+         */
+        fun getFeaturesForSpamClassifier(content : String) : FloatArray{
+            //get the features for the spam classifier
+            val featuresSMS = FloatArray(ATTRIBUTE_AMOUNT)
+            for (i in BAG_OF_WORDS.indices){
+                //count the amount of words in the sms
+                val amountWords = StringUtils.countMatches(content, BAG_OF_WORDS[i])
+                featuresSMS[i] = amountWords.toFloat()
+            }
+            return featuresSMS
+        }
+
+
+        /**
+         * This function get an URL from the SMS using Regex, if the SMS contains more than one
+         * URL, the function will only return the first one
+         * @param content: the content of the SMS
+         * @return the URL of the SMS, if there are no URL returns an empty string
+         */
+        fun getUrlFromSMS(content: String) : String{
+            /*
+            Detects a
+             */
+            val urlPattern = Pattern.compile(
+                    "((?:[a-z][\\w-]+:(?:/{1,3}|[a-z0-9%])|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’]))",
+                    Pattern.CASE_INSENSITIVE or Pattern.MULTILINE or Pattern.DOTALL)
+
+            val matcher = urlPattern.matcher(content)
+            while (matcher.find()) {
+                //url found
+                val match = matcher.group(1)
+                Log.v(TAG, "URL in SMS $match")
+                //if url does not start with http:// nor https:// add http:// by default
+                if(!match.startsWith("http://") && !match.startsWith("https://"))
+                    return "http://" + match
+                return match
+            }
+            return ""
+        }
+    }
+
 
 
     /**

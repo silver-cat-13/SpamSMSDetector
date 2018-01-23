@@ -104,16 +104,14 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
     //request finish
     override fun endedRequest() {
         Log.v(TAG, "endedRequest")
+
+
     }
 
     //got some data
     override fun finished(data: Any) {
         val cr = data as ConnectionResponse
-        Log.v(TAG, "finished")
         if(DEBUG) Log.v(TAG, "answer ${cr.answer}")
-        Log.v(TAG, "url ${cr.url}")
-        Log.v(TAG, "code ${cr.code}")
-        Log.v(TAG, "domain ${URLCheck(cr.url!!).getDomain()}")
 
         //check the code
         when(cr.code){
@@ -226,8 +224,10 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
     //get domain of the url
     private fun getDomain() : String = URI(url).host.removePrefix("www.")
 
-    //check url
-    fun checkURL(urlTest : String) : Boolean{
+    /**
+     * This function check if the String is a valid URL or not
+     */
+    private fun checkURL(urlTest : String) : Boolean{
         return try{
             URL(urlTest)
             true
@@ -238,8 +238,17 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
 
     /**
+     * This function start the process of getting all the features to check if the URL is
+     * phishing or not
+     */
+    fun getFeatures(){
+        checkShortUrl()
+    }
+
+
+    /**
      * This function check if the function is a short url, in case it's an short url
-     * the method will find the long version using a conection with URLRedirect
+     * the method will find the long version using a connection with URLRedirect
      * in case it's not an short url the method will call getFeaturesString() to finish
      * to check the URL for the rest of the features
      */
@@ -255,26 +264,18 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         urlRedirect.execute(ConnectionResponse.constants.CODE_REDIRECT_CONECTION)
     }
 
-    fun testAlexaPageRank(){
-        //make a who is connection
-
-        val alexa = ConnectionGoogleIndexTask(this, url)
-        alexa.execute(ConnectionResponse.constants.CODE_GOOGLE_INDEX_CONECTION)
-
-    }
-
 
     /**
      * This function check the basic information in the URL as a string, except for if it is an
      * tiny url
      * at the end the function calls a connection to retrieve the html file
      */
-    fun checkURLFeatures(){
+    private fun checkURLFeatures(){
 
         //check the amount of times a Redirection occur
         if(valuesRedirection >= 2 ){
             //redirection hight phisy
-            Log.v(TAG, "redirection hight phisy")
+            Log.v(TAG, "redirection high phishing")
             redirect = PHISHING
             savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
         }else if(valuesRedirection == 1){
@@ -290,7 +291,6 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         }
 
         val urlCheck = URLCheck(url)
-        var isHttps = false
 
         //add the value if the url is an ip addrress
         havingIPAddress = urlCheck.havingIpAddress()
@@ -334,8 +334,6 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                 ct.execute(ConnectionResponse.constants.CODE_REGULAR_CONECTION)
             }
             else -> {
-                //it does has htpps, check the certificate
-                isHttps = true
                 Log.v(TAG, "checkDomainContainsHTTPS not phishing")
                 val ct = ConnectionHTTPSTask(this, url)
                 ct.execute(ConnectionResponse.constants.CODE_REGULAR_CONECTION)

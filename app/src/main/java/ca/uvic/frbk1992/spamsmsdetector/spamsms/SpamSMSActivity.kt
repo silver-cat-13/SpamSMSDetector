@@ -2,6 +2,7 @@ package ca.uvic.frbk1992.spamsmsdetector.spamsms
 
 import android.Manifest
 import android.annotation.TargetApi
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -12,16 +13,22 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import ca.uvic.frbk1992.spamsmsdetector.*
-import ca.uvic.frbk1992.spamsmsdetector.classifier.PhishingClassifier
+import ca.uvic.frbk1992.spamsmsdetector.app_info.AppInfoActivity
 import ca.uvic.frbk1992.spamsmsdetector.classifier.SMSSpamClassifier
-import ca.uvic.frbk1992.spamsmsdetector.phisingDetector.FindValuesURL
+import ca.uvic.frbk1992.spamsmsdetector.main.MainActivity
 import ca.uvic.frbk1992.spamsmsdetector.phisingDetector.URLCheck
 import ca.uvic.frbk1992.spamsmsdetector.sms.SMSActivity
+import com.tbruyelle.rxpermissions2.RxPermissions
+import io.reactivex.Single
+import io.reactivex.SingleObserver
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 
 import kotlinx.android.synthetic.main.activity_spam_sms.*
 import org.apache.commons.lang3.StringUtils
 import java.util.*
-import java.util.concurrent.Executors
+import java.util.concurrent.Callable
 import java.util.regex.Pattern
 import kotlin.collections.ArrayList
 
@@ -35,8 +42,10 @@ class SpamSMSActivity : AppCompatActivity(),
 
     private val TAG = this.javaClass.simpleName
 
-    private var smsClassifier: SMSSpamClassifier? = null
-    private val executor = Executors.newSingleThreadExecutor()
+    private val INIT_CLASSIFIER = 1
+    private val DESTROY_CLASSIFIER = 2
+
+    private var smsSpamClassifier: SMSSpamClassifier? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,18 +53,36 @@ class SpamSMSActivity : AppCompatActivity(),
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        //create the RxPermission
+        val rxPermission = RxPermissions(this)
+
         initTensorFlowAndLoadModel()
 
         //call the SpamSMSActivityFragment and check for SMS permission and ask for it in case
         // it's need it
-        if (savedInstanceState == null && requestPermissionReceiveSMS()) {
-            startFragment(SpamSMSActivityFragment.newInstance(), SMS_SPAM_LIST_FRAGMENT_TAG);
+        if (savedInstanceState == null) {
+            rxPermission.request(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS)
+                    .subscribe({ granted ->
+                        if(granted){
+                            //permission was granted
+                            startFragment(SpamSMSActivityFragment.newInstance(), SMS_SPAM_LIST_FRAGMENT_TAG)
+                        }else{
+                            //permission was not granted
+                            showNeutralDialogFinishActivity(getString(R.string.alert_dialog_not_permission_title_string),
+                                    getString(R.string.alert_dialog_not_permission_body_string),
+                                    getString(R.string.alert_dialog_not_permission_botton_string))
+                        }
+                    })
+
+
         }
     }
 
     override fun onDestroy() {
+        Single.just(DESTROY_CLASSIFIER)
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(singleSMSSPamClassifier(this))
         super.onDestroy()
-        executor.execute({ smsClassifier!!.close() })
     }
 
 
@@ -84,24 +111,34 @@ class SpamSMSActivity : AppCompatActivity(),
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Funtion that retrieve all spam sms in the phone
-     * @return List of all spam SMS
+     * Funtion that retrieve sms and retrieve only the ones that are spam. The function use another
+     * thread to classify the sms and after they are clyssify the activity call the fragment
+     * to update the list
      */
-    override fun getSpamSMS(): ArrayList<SMSClass> {
-        val sms = ArrayList<SMSClass>()
+    override fun showAllSpamSMS(){
+        val smsList = ArrayList<SMSClass>()
         val uriSMSURI = Uri.parse("content://sms/inbox")
-        val cur = contentResolver.query(uriSMSURI, null, null, null, null)
+        val cur = contentResolver.query(uriSMSURI,
+                null,
+                null,
+                null,
+                null)
 
         while (cur != null && cur.moveToNext()) {
             val id = cur.getString(cur.getColumnIndex("_id"))
             val address = cur.getString(cur.getColumnIndex("address"))
             val body = cur.getString(cur.getColumnIndexOrThrow("body"))
-            sms.add(SMSClass(id.toInt(), address, body, spam = true))
+            smsList.add(SMSClass(id.toInt(), address, body, spam = true))
         }
 
         cur?.close()
 
-        return retrieveSpamSMS(sms)
+
+        //check sms list
+        Single.fromCallable(callableSpamListClassifier(smsList))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(getSimpleSpamListClassifier())
     }
 
 
@@ -117,10 +154,13 @@ class SpamSMSActivity : AppCompatActivity(),
     }
 
     /**
-     * This function is called when the user wants to delete all his spam sms
+     * function that called the TestUrlActivity via intent
      */
-    override fun deleteAllSpamSMS(smsList: ArrayList<SMSClass>) {
+    override fun goInfoApp() {
+        val intent = Intent(baseContext, AppInfoActivity::class.java)
+        startActivity(intent)
     }
+
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,20 +174,30 @@ class SpamSMSActivity : AppCompatActivity(),
 
 
     /**
-     * Function that check the permission of Manifest.permission.RECEIVE_SMS and ask for it
-     * in case the user hasn't accpeted it
-     * @return return false if the permission was already accpeted
+     * Show a dialog that ends the application, the dialog finish the all the activities,
+     * calls the main activity uising intent and then closes it
+     * @param title el titulo del dialog
+     * @param content el mensaje
+     * @param bottonMsg el boton neutral
      */
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun requestPermissionReceiveSMS() : Boolean{
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)
-                == PackageManager.PERMISSION_DENIED){
-            requestPermissions(arrayOf(Manifest.permission.RECEIVE_SMS)
-                    , REQUEST_PERMISSION_RECEIVE_SMS);
-            return false
+    private fun showNeutralDialogFinishActivity(title: String, content: String, bottonMsg: String) {
+        //Dialogo de alerta que aparece cuando se preciona acerca de
+        val alert = android.app.AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(content)
+                .setNeutralButton(bottonMsg) { _, _ ->
+                    //empty
+                }
+                .create()
+        alert.setOnDismissListener {
+            //finish the activity
+            val intent = Intent(applicationContext, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            intent.putExtra(EXIT, true)
+            startActivity(intent)
         }
+        alert.show()
 
-        return true
     }
 
 
@@ -168,47 +218,107 @@ class SpamSMSActivity : AppCompatActivity(),
      * and the ulr as a phishing site
      */
     private fun initTensorFlowAndLoadModel() {
-        executor.execute {
-            try {
-                smsClassifier = SMSSpamClassifier().create(
-                        assetManager = this.assets,
-                        modelFilename = SMS_MODEL_FILE,
-                        inputName = INPUT,
-                        outputName = OUTPUT)
+        Single.just(INIT_CLASSIFIER)
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(singleSMSSPamClassifier(this))
+    }
 
-                Log.d(TAG, "Load Success")
-            } catch (e: Exception) {
-                throw RuntimeException("Error initializing TensorFlow!", e)
+
+    /**
+     * This function return a single of RxJava where create/destroy the SMSSpamClassifier
+     * depending on the integer observable
+     */
+    private fun singleSMSSPamClassifier(context: Context): SingleObserver<Int> {
+        return object : SingleObserver<Int> {
+
+            override fun onSuccess(t: Int) {
+                Log.e(TAG, "Thread Name 3 ${Thread.currentThread().name}")
+                when(t){
+                    INIT_CLASSIFIER ->{
+                        Log.i(TAG, "Creating model for Spam classifier")
+
+                        smsSpamClassifier = SMSSpamClassifier().create(
+                                assetManager = context.assets,
+                                modelFilename = SMS_MODEL_FILE,
+                                inputName = INPUT,
+                                outputName = OUTPUT)
+
+                    }DESTROY_CLASSIFIER ->{
+                    Log.i(TAG, "Closing Spam classifier")
+                    smsSpamClassifier?.close()
+                }
+                }
             }
+
+            override fun onError(e: Throwable) {
+                Log.e(TAG, "Error with TensorFlow ${e.message}")
+                throw RuntimeException("Error with TensorFlow!", e)
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                // onSubscribe
+            }
+
+
         }
     }
 
     /**
-     * This function check all the sms in the list and retrieve all the spam sms
+     * This function return a callable of RxJava where create the uses the
+     * smsSpamClassifier to classify all the SMS ion a list and return only the spam sms
+     * @param smsList SMS to check if is Spam or not.
+     * @return a Callable object that return an boolean
      */
-    private fun retrieveSpamSMS(smsList: ArrayList<SMSClass>) : ArrayList<SMSClass>{
-        //  val iterator : MutableCollection<SMSClass> = smsList.iterator()
-        val smsSpamList  = ArrayList<SMSClass>()
-        //test each sms
-        for (sms in smsList){
-            //find the features of the sms
-            val featuresSMS = getArraySMS(sms.content)
+    private fun callableSpamListClassifier(smsList: ArrayList<SMSClass>) : Callable<ArrayList<SMSClass>> {
+        return Callable<ArrayList<SMSClass>> {
+            val smsSpamList = ArrayList<SMSClass>()
+            //test each sms
+            for (sms in smsList) {
+                //find the features of the sms
+                val featuresSMS = getArraySMS(sms.content)
 
-            //clasiffy the sms
-            if(smsClassifier != null && smsClassifier!!.isSpam(featuresSMS)) {
-                //sms is spam
-                Log.e(TAG, "SMS ${sms.content} is Spam")
-                //add an url if the spam sms has an url
-                smsSpamList.add(checkForUrl(sms))
+                //classify the sms
+                if (smsSpamClassifier != null && smsSpamClassifier!!.isSpam(featuresSMS)) {
+                    //sms is spam
+                    Log.v(TAG, "Classifier found a Spam SMS")
+                    //add an url if the spam sms has an url
+                    smsSpamList.add(checkForUrl(sms))
+                }
             }
-            else {
-                Log.v(TAG, "SMS is ${sms.content} Not Spam")
-            }
+
+            //return all the spam sms
+            smsSpamList
         }
-
-        //return all the spam sms
-        return smsSpamList
     }
+
+
+    /**
+     * Get a simple observer from the spam classifier, on success the function receives a list with
+     * all spam sms, the observer calls the fragment to update the list of spam sms
+     */
+    private fun getSimpleSpamListClassifier(): SingleObserver<ArrayList<SMSClass>> {
+        return object : SingleObserver<ArrayList<SMSClass>>{
+
+            override fun onSuccess(smsList: ArrayList<SMSClass>) {
+                Log.v(TAG, "Showing list of Spam SMS")
+                val fragment = supportFragmentManager.findFragmentById(R.id.spam_sms_container)
+                        as? SpamSMSActivityFragment
+                fragment?.showSpamSMS(smsList)
+            }
+
+            override fun onError(e: Throwable) {
+                Log.e(TAG, "Error classifying sms ${e.message}")
+                throw RuntimeException("Error classifying sms ${e.message}", e)
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                //onSubscribe
+            }
+
+
+        }
+    }
+
 
     /**
      * get the features of an sms

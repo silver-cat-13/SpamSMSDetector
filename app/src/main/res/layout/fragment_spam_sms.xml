@@ -6,20 +6,30 @@
     tools:context="ca.uvic.frbk1992.spamsmsdetector.main.SMSListFragment"
     android:orientation="vertical">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
+        android:orientation="horizontal"
         android:layout_height="@dimen/list_spam_sms_gray_bar_size"
         android:background="@color/mediumGray">
 
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
+            android:layout_height="match_parent"
+            android:paddingLeft="@dimen/padding_horizontal_spam_sms_list_indicator"
+            android:paddingStart="@dimen/padding_horizontal_spam_sms_list_indicator"
             android:paddingEnd="@dimen/padding_horizontal_spam_sms_list_indicator"
             android:paddingRight="@dimen/padding_horizontal_spam_sms_list_indicator"
+            android:paddingTop="@dimen/padding_vertical_spam_sms_list_indicator"
+            android:text="@string/fragment_spam_sms_text_view_spam_sms_loading"
             android:textColor="@color/colorWhite"
             android:id="@+id/text_view_spam_sms_list_indicator"/>
-    </FrameLayout>
+
+        <ProgressBar
+            android:layout_width="20dp"
+            android:id="@+id/fragment_spam_sms_progress_bar_loading"
+            android:layout_height="match_parent"
+            android:indeterminate="true" />
+    </LinearLayout>
 
     <ListView
         android:id="@android:id/list"

@@ -4,63 +4,68 @@ package ca.uvic.frbk1992.spamsmsdetector
  * File with constants
  */
 
-val DEBUG = true
+const val DEBUG = true
 
-val PHISHING = -1
-val LEGITIMATE = 1
-val SUSPICIOUS  = 0
+const val PHISHING = -1
+const val LEGITIMATE = 1
+const val SUSPICIOUS  = 0
 
-val PHISHING_S = "Phishing"
-val LEGITIMATE_S = "Legitimate"
-val SUSPICIOUS_S  = "Suspicious"
+const val PHISHING_S = "Phishing"
+const val LEGITIMATE_S = "Legitimate"
+const val SUSPICIOUS_S  = "Suspicious"
 
-val SMS_LIST_FRAGMENT_TAG = "slft"
-val SMS_SPAM_LIST_FRAGMENT_TAG = "sslft"
-val SMS_DETAIL_FRAGMENT_TAG = "sdft"
-val TEST_URL_FRAGMENT_TAG = "tuft"
+const val SMS_LIST_FRAGMENT_TAG = "slft"
+const val SMS_SPAM_LIST_FRAGMENT_TAG = "sslft"
+const val SMS_DETAIL_FRAGMENT_TAG = "sdft"
+const val APP_INFO_FRAGMENT_TAG = "aift"
+const val TEST_URL_FRAGMENT_TAG = "tuft"
 
-val SMS_DETAIL_ACTIVITY = "sms_detail"
+const val SMS_DETAIL_ACTIVITY = "sms_detail"
 
-val REQUEST_PERMISSION_RECEIVE_SMS = 1
+const val REQUEST_PERMISSION_RECEIVE_SMS = 1
+
+const val EXIT = "EXIT"
 
 
 //preferences
-var URL_PREFERENCES = "url-preferences"
-var HAVING_IP_ADDRRESS  = "pref_1"
-var URL_LENGHT   = "pref_2"
-var SHORTENING_SERVICE = "pref_3"
-var HAVING_AT_SYMBOL   = "pref_4"
-var DOUBLE_SLASH_REDIRECTING = "pref_5"
-var PREFIX_SUFFIX  = "pref_6"
-var HAVING_SUB_DOMAIN  = "pref_7"
-var SSL_FINAL_STATE  = "pref_8"
-var DOMAIN_REGISTRATION_LENGHT = "pref_9"
-var FAVICON = "pref_10"
-var PORT = "pref_11"
-var HTTPS_TOKEN = "pref_12"
-var REQUEST_URL  = "pref_13"
-var URL_OF_ANCHOR = "pref_14"
-var LINKS_IN_TAGS = "pref_15"
-var SFH  = "pref_16"
-var SUBMITTING_TO_EMAIL = "pref_17"
-var ABNORMAL_URL = "pref_18"
-var REDIRECT  = "pref_19"
-//var ON_MOUSE_OVER  = "pref_20" //block by today's browsers
-var RIGHT_CLICK  = "pref_21"
-var POP_UP_WINDOW  = "pref_22"
-var I_FFRAME = "pref_23"
-var AGE_OF_DOMAIN  = "pref_24"
-var DNS_RECORD   = "pref_25"
-var WEB_TRAFFIC  = "pref_26"
-//var PAGE_RANK = "pref_27" //not use anymore
-var GOOGLE_INDEX = "pref_28"
-var LINKS_POINTING_TO_PAGE = "pref_29"
-var STATISTICAL_REPORT = "pref_30"
+const val URL_PREFERENCES = "url-preferences"
+const val HAVING_IP_ADDRRESS  = "pref_1"
+const val URL_LENGHT   = "pref_2"
+const val SHORTENING_SERVICE = "pref_3"
+const val HAVING_AT_SYMBOL   = "pref_4"
+const val DOUBLE_SLASH_REDIRECTING = "pref_5"
+const val PREFIX_SUFFIX  = "pref_6"
+const val HAVING_SUB_DOMAIN  = "pref_7"
+const val SSL_FINAL_STATE  = "pref_8"
+const val DOMAIN_REGISTRATION_LENGHT = "pref_9"
+const val FAVICON = "pref_10"
+const val PORT = "pref_11"
+const val HTTPS_TOKEN = "pref_12"
+const val REQUEST_URL  = "pref_13"
+const val URL_OF_ANCHOR = "pref_14"
+const val LINKS_IN_TAGS = "pref_15"
+const val SFH  = "pref_16"
+const val SUBMITTING_TO_EMAIL = "pref_17"
+const val ABNORMAL_URL = "pref_18"
+const val REDIRECT  = "pref_19"
+//const val ON_MOUSE_OVER  = "pref_20" //block by today's browsers
+const val RIGHT_CLICK  = "pref_21"
+const val POP_UP_WINDOW  = "pref_22"
+const val I_FFRAME = "pref_23"
+const val AGE_OF_DOMAIN  = "pref_24"
+const val DNS_RECORD   = "pref_25"
+const val WEB_TRAFFIC  = "pref_26"
+//const val PAGE_RANK = "pref_27" //not use anymore
+const val GOOGLE_INDEX = "pref_28"
+const val LINKS_POINTING_TO_PAGE = "pref_29"
+const val STATISTICAL_REPORT = "pref_30"
 
-val PHISHING_MODEL_FILE = "file:///android_asset/phishing_model_opt4.pb"
-val SMS_MODEL_FILE = "file:///android_asset/sms_model_opt4.pb"
-val OUTPUT = "output"
-val INPUT = "input"
+const val PHISHING_MODEL_FILE = "file:///android_asset/phishing_model_opt4.pb"
+const val SMS_MODEL_FILE = "file:///android_asset/sms_model_opt4.pb"
+const val OUTPUT = "output"
+const val INPUT = "input"
+
+const val APACHE_LICENSE = "apache_license.txt"
 
 //val BAG_OF_WORDS = arrayOf("call", "that", "your", "have", "free", "will", "from", "just", "mobile", "ltgt",
 //                        "text", "when", "stop", "with", "claim", "this", "what", "reply", "know", "prize",

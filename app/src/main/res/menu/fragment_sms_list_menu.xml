@@ -4,7 +4,14 @@
     tools:context="ca.uvic.frbk1992.spamsmsdetector.sms.SMSActivity">
     <item
         android:id="@+id/fragment_list_menu_test_spam_sms_id"
-        android:orderInCategory="100"
+        android:icon="@drawable/ic_bug_report_black_24dp"
         android:title="@string/fragment_list_menu_try_spam_sms_string"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/fragment_list_menu_information_app"
+        android:icon="@drawable/ic_info_grey_24dp"
+        android:title="@string/fragment_list_menu_information_app"
+        app:showAsAction="never" />
+
 </menu>
