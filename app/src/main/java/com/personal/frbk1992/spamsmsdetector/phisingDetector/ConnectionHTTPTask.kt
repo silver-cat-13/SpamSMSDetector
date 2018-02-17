@@ -14,7 +14,7 @@ import java.security.cert.CertificateExpiredException
  * Made a http connection, the class receive a the interface EventHandler and the url as
  * parameters and the timeout, the timeout is 60 seconds by default
  */
-class ConnectionHTTPTask(val eventHandler: EventHandler, val urlString: String, val timeOut: Int = 60000)
+class ConnectionHTTPTask(val eventHandler: EventHandler, val urlString: String, val timeOut: Int = 5000)
     : AsyncTask<Int, Unit, ConnectionResponse>() {
 
 

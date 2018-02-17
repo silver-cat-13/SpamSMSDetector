@@ -19,7 +19,7 @@ class ConnectionResponse(var url : String? = "",
 
 
     object Constants {
-        const val CODE_REGULAR_CONECTION = 0 //regular conection, get http
+        const val CODE_REGULAR_CONNECTION = 0 //regular conection, get http
 
         const val CODE_REDIRECT_CONECTION = 1 //conection to get the redirected website
 

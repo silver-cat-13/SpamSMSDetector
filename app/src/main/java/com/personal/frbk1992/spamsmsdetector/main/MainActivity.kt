@@ -7,12 +7,14 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import com.personal.frbk1992.spamsmsdetector.R
 import com.personal.frbk1992.spamsmsdetector.*
 import com.personal.frbk1992.spamsmsdetector.appInfo.AppInfoActivity
 import com.personal.frbk1992.spamsmsdetector.sms.SMSActivity
 import com.personal.frbk1992.spamsmsdetector.spamsms.SpamSMSActivity
 import com.tbruyelle.rxpermissions2.RxPermissions
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.app_bar_main.*
 
 
@@ -24,7 +26,10 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInteractionListener{
 
 
-    //private val TAG = this.javaClass.simpleName
+    private val TAG = this.javaClass.simpleName
+
+    //create the RxPermission
+    private val rxPermission : RxPermissions by lazy{ RxPermissions(this) }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,8 +44,7 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
 
         setSupportActionBar(toolbar)
 
-        //create the RxPermission
-        val rxPermission = RxPermissions(this)
+
 
         //call the SMSListFragment and check for SMS permission and ask for it in case it's need it
         if (savedInstanceState == null) {
@@ -60,24 +64,6 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
         }
     }
 
-
-
-
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<out String>,
-                                            grantResults: IntArray) {
-        when(requestCode){
-            REQUEST_PERMISSION_RECEIVE_SMS ->{
-                if (grantResults.isNotEmpty()
-                        && grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                    showNeutralDialog(this, "Please", ":(", "close")
-                }else{
-                    //permission acepted, show fragment
-                    startFragment(SMSListFragment.newInstance(), SMS_LIST_FRAGMENT_TAG)
-                }
-            }
-        }
-    }
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,13 +175,7 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
 
     }
 
-
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //                                      MainActivity  Functions                               //
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
 }
-
-
-

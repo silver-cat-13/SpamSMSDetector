@@ -1,13 +1,11 @@
 package com.personal.frbk1992.spamsmsdetector.sms
 
+import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
 
 import android.telephony.SmsMessage
 import android.util.Log
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.TaskStackBuilder
 import android.content.Intent
 
 import android.support.v4.app.NotificationCompat
@@ -23,7 +21,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import org.apache.commons.lang3.StringUtils
-import java.util.concurrent.Executors
+import android.os.Build
 
 
 /*
@@ -40,11 +38,10 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
     private val INIT_CLASSIFIER = 1
     private val DESTROY_CLASSIFIER = 2
 
-    private val executor = Executors.newSingleThreadExecutor()
+    private val SPAM_SMS = 1
+    private val SPAM_PHISHING_SMS = 2
 
     override fun onReceive(context: Context, intent: Intent) {
-        //init the classifiers
-        initTensorFlowAndLoadModel(context)
 
         val bundle = intent.extras
         if (bundle != null) {
@@ -62,13 +59,50 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
     /**
      * Function that shows a notification of the sms
      */
-    private fun showNotification(ctx : Context, sms : String, address : String){
+    private fun showNotification(ctx : Context, sms : String, title: String, result: Int){
+        val mNotificationManager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         // The id of the channel.
         val channelId = "my_channel_01"
+
+        // The user-visible name of the channel.
+        val name = ctx.getString(R.string.channel_name)
+
+        // The user-visible description of the channel.
+        val description = ctx.getString(R.string.channel_description)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val mChannel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_LOW)
+            } else {
+                null
+            }
+            // Configure the notification channel.
+            mChannel?.description = description
+
+            mChannel?.enableLights(true)
+            // Sets the notification light color for notifications posted to this
+            // channel, if the device supports this feature.
+            mChannel?.lightColor = ctx.getColor(R.color.colorPrimary)
+
+            mChannel?.enableVibration(true)
+
+            mNotificationManager.createNotificationChannel(mChannel);
+        }
+
+        //set the notification icon
+        val notificationIcon = if(result == SPAM_SMS){
+            R.drawable.ic_spam_sms_notification
+        }else{
+            R.drawable.ic_spam_phighing_notification
+        }
+
         val mBuilder = NotificationCompat.Builder(ctx, channelId)
-                .setSmallIcon(R.drawable.ic_sms_24dp)
-                .setContentTitle("New SMS from $address")
+                .setSmallIcon(notificationIcon)
+                .setAutoCancel(true)
+                .setContentTitle(title)
                 .setContentText(sms)
+        //mBuilder.notification.flags = mBuilder.notification.flags or Notification.FLAG_AUTO_CANCEL
         // Creates an explicit intent for an Activity in your app
         val resultIntent = Intent(ctx, MainActivity::class.java)
 
@@ -86,15 +120,11 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
                 PendingIntent.FLAG_UPDATE_CURRENT
         )
         mBuilder.setContentIntent(resultPendingIntent)
-        val mNotificationManager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // mNotificationId is a unique integer your app uses to identify the
         // notification. For example, to cancel the notification, you can pass its ID
         // number to NotificationManager.cancel().
         mNotificationManager.notify(1, mBuilder.build())
-
-        closeTensorFlowAndLoadModel(ctx)
-
     }
 
     /**
@@ -112,19 +142,38 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
 
 
         //create observable that check if the features correspond to a phishing site
-        val featuresObservable = Single.fromCallable{ smsSpamClassifier!!.isSpam(featuresSMS) }
+        val featuresObservable = Single.fromCallable{
+            smsSpamClassifier = SMSSpamClassifier().create(
+                    assetManager = ctx.assets,
+                    modelFilename = SMS_MODEL_FILE,
+                    inputName = INPUT,
+                    outputName = OUTPUT)
+            smsSpamClassifier!!.isSpam(featuresSMS)
+        }
         featuresObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : SingleObserver<Boolean>{
                     override fun onSuccess(t: Boolean) {
+                        //closing classifier
+                        Single.just(DESTROY_CLASSIFIER)
+                                .subscribeOn(Schedulers.newThread())
+                                .subscribe(singleSMSSPamClassifier(ctx))
                         if(t) {
+                            Log.v(TAG, "User just received SPAM sms")
                             // SMS contains phishing site
                             checkForUrl(ctx, sms)
+                        }else{
+                            Log.v(TAG, "SMS is not Spam")
                         }
+
                     }
 
                     override fun onError(e: Throwable) {
+                        //closing classifier
+                        Single.just(DESTROY_CLASSIFIER)
+                                .subscribeOn(Schedulers.newThread())
+                                .subscribe(singleSMSSPamClassifier(ctx))
                         Log.e(TAG, "${e.message}")
                         throw RuntimeException("Error with TensorFlow! ${e.message}", e)
                     }
@@ -150,37 +199,12 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
         } else {
             //SMS has no URL
             showNotification(ctx, ctx.getString(R.string.notification_message_warning_spam_message),
-                    ctx.getString(R.string.notification_message_warning_title))
+                    ctx.getString(R.string.notification_message_warning_title), SPAM_SMS)
         }
     }
 
 
-    /**
-     * this function init the classifiers
-     */
-    private fun initTensorFlowAndLoadModel(ctx : Context) {
-        //init phishing model
-        Single.just(INIT_CLASSIFIER)
-                .subscribeOn(Schedulers.newThread())
-                .subscribe(singlePhishingClassifier(ctx))
 
-        //init phishing model
-        Single.just(INIT_CLASSIFIER)
-                .subscribeOn(Schedulers.newThread())
-                .subscribe(singleSMSSPamClassifier(ctx))
-    }
-
-    /**
-     * Function that clases the classifier
-     */
-    private fun closeTensorFlowAndLoadModel(ctx : Context) {
-        Single.just(DESTROY_CLASSIFIER)
-                .subscribeOn(Schedulers.newThread())
-                .subscribe(singlePhishingClassifier(ctx))
-        Single.just(DESTROY_CLASSIFIER)
-                .subscribeOn(Schedulers.newThread())
-                .subscribe(singlePhishingClassifier(ctx))
-    }
 
 
     /**
@@ -188,23 +212,37 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
      */
     override fun siteFeatures(ctx : Context, url : String ,features: FloatArray, _id : Int) {
         //create observable that check if the features correspond to a phishing site
-        val featuresObservable = Single.fromCallable{ phishingClassifier!!.isPhishing(features) }
+        val featuresObservable = Single.fromCallable{
+            phishingClassifier = PhishingClassifier().create(
+                    assetManager = ctx.assets,
+                    modelFilename = PHISHING_MODEL_FILE,
+                    inputName = INPUT,
+                    outputName = OUTPUT)
+            phishingClassifier!!.isPhishing(features)
+        }
         featuresObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : SingleObserver<Boolean>{
                     override fun onSuccess(t: Boolean) {
+                        Single.just(DESTROY_CLASSIFIER)
+                                .subscribeOn(Schedulers.newThread())
+                                .subscribe(singlePhishingClassifier(ctx))
                         if(t) {
                             // SMS contains phishing site
                             showNotification(ctx, ctx.getString(R.string.notification_message_warning_spam_phishing_message),
-                                    ctx.getString(R.string.notification_message_warning_title))
+                                    ctx.getString(R.string.notification_message_warning_title), SPAM_PHISHING_SMS)
                         }
                         else //SMS does not contain phishing site
                             showNotification(ctx, ctx.getString(R.string.notification_message_warning_spam_message),
-                                    ctx.getString(R.string.notification_message_warning_title))
+                                    ctx.getString(R.string.notification_message_warning_title), SPAM_SMS)
                     }
 
                     override fun onError(e: Throwable) {
+                        //closing classifier
+                        Single.just(DESTROY_CLASSIFIER)
+                                .subscribeOn(Schedulers.newThread())
+                                .subscribe(singlePhishingClassifier(ctx))
                         Log.e(TAG, "${e.message}")
                         throw RuntimeException("Error with TensorFlow! ${e.message}", e)
                     }

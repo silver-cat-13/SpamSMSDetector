@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("ca.uvic.frbk1992.spamsmsdetector", appContext.packageName)
+        assertEquals("com.personal.frbk1992.spamsmsdetector", appContext.packageName)
     }
 }

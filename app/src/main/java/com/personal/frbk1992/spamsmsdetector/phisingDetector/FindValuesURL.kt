@@ -115,7 +115,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
         //check the code
         when(cr.code){
-            ConnectionResponse.Constants.CODE_REGULAR_CONECTION ->{
+            ConnectionResponse.Constants.CODE_REGULAR_CONNECTION ->{
                 //it was a regular conection, got the html file and the data
 
                 //check if it was a HTTPS connection, if it was check certificates
@@ -195,7 +195,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
     fun connectToServer(){
         val ct = ConnectionHTTPTask(this, url)
-        ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONECTION)
+        ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONNECTION)
     }
 
 
@@ -335,12 +335,12 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                 Log.v(TAG, "checkDomainContainsHTTPS phishing")
                 savePrefence(ctx, URL_PREFERENCES, SSL_FINAL_STATE, sslFinalState)
                 val ct = ConnectionHTTPTask(this, url)
-                ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONECTION)
+                ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONNECTION)
             }
             else -> {
                 Log.v(TAG, "checkDomainContainsHTTPS not phishing")
                 val ct = ConnectionHTTPSTask(this, url)
-                ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONECTION)
+                ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONNECTION)
             }
         }
 
