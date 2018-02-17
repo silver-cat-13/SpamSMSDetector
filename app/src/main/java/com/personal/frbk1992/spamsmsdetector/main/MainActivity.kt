@@ -2,19 +2,15 @@ package com.personal.frbk1992.spamsmsdetector.main
 
 import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
-import com.personal.frbk1992.spamsmsdetector.R
 import com.personal.frbk1992.spamsmsdetector.*
 import com.personal.frbk1992.spamsmsdetector.appInfo.AppInfoActivity
 import com.personal.frbk1992.spamsmsdetector.sms.SMSActivity
 import com.personal.frbk1992.spamsmsdetector.spamsms.SpamSMSActivity
 import com.tbruyelle.rxpermissions2.RxPermissions
-import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.app_bar_main.*
 
 
