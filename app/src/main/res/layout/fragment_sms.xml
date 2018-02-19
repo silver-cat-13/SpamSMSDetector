@@ -44,8 +44,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
+                        android:visibility="gone"
                         android:textColor="@color/colorWarning"
-                        android:id="@+id/fragment_sms_indicatpr_spam_phishing" />
+                        android:id="@+id/fragment_sms_indicator_spam_phishing" />
 
 
                     <TextView

@@ -35,7 +35,6 @@ class ConnectionHTTPTask(val eventHandler: EventHandler, val urlString: String, 
 
             val url = URL(urlString)
 
-            Log.v(TAG, "-------urlString " + connResponse.url)
 
             // Create the request to OpenWeatherMap, and open the connection
             urlConnection = url.openConnection() as HttpURLConnection
@@ -44,7 +43,6 @@ class ConnectionHTTPTask(val eventHandler: EventHandler, val urlString: String, 
 
             val address = InetAddress.getByName(URL(connResponse.url).host)
             connResponse.ip = address.hostAddress
-            Log.v(TAG, "-------ip " + connResponse.ip)
 
             // Read the input stream into a String
             val inputStream = urlConnection.inputStream ?: return connResponse
@@ -57,7 +55,6 @@ class ConnectionHTTPTask(val eventHandler: EventHandler, val urlString: String, 
                 line = reader.readLine()
                 if (line == null) break //end of the text
                 buffer.append(line).append("\n")
-                if(DEBUG) Log.v(TAG, line)
             }
 
             if (buffer.isEmpty()) {

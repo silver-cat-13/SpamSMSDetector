@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import com.crashlytics.android.Crashlytics
 import com.personal.frbk1992.spamsmsdetector.R
 import com.personal.frbk1992.spamsmsdetector.*
 import com.personal.frbk1992.spamsmsdetector.classifier.PhishingClassifier
@@ -56,10 +57,8 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
         if (savedInstanceState == null) {
             startFragment(SMSDetailFragment.newInstance(sms!!), SMS_DETAIL_FRAGMENT_TAG)
         }
-
-
+        //init the models
         initTensorFlowAndLoadModel()
-
     }
 
     override fun onDestroy() {

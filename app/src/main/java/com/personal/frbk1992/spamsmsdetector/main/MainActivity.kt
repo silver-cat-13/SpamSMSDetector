@@ -37,7 +37,6 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
         if (intent.getBooleanExtra(EXIT, false)) {
             finish()
         }
-
         setSupportActionBar(toolbar)
 
 
@@ -72,6 +71,7 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
      */
     override fun getSMS(): ArrayList<SMSClass> {
         val sms = ArrayList<SMSClass>()
+
         val uriSMSURI = Uri.parse("content://sms/inbox")
         val cur = contentResolver.query(uriSMSURI,
                 null, null, null, null)
@@ -82,8 +82,9 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
             val body = cur.getString(cur.getColumnIndexOrThrow("body"))
             sms.add(SMSClass(id.toInt(), address, body))
         }
-
         cur?.close()
+
+
         return sms
     }
 

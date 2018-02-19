@@ -98,20 +98,17 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
     //start the request
     override fun startedRequest() {
-        Log.v(TAG, "startedRequest")
+
     }
 
     //request finish
     override fun endedRequest() {
-        Log.v(TAG, "endedRequest")
-
 
     }
 
     //got some data
     override fun finished(data: Any) {
         val cr = data as ConnectionResponse
-        if(DEBUG) Log.v(TAG, "answer ${cr.answer}")
 
         //check the code
         when(cr.code){
@@ -155,14 +152,10 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                     return
                 }
 
-                Log.v(TAG, "answer ${URLCheck(cr.answer!!).getDomain()}")
-                Log.v(TAG, "url ${URLCheck(cr.url!!).getDomain()}")
-
 
                 val urlSplit = URLCheck(cr.url!!).getDomain().split(".")[0]
                 val answerSplit = URLCheck(cr.answer!!).getDomain().split(".")[0]
                 if(answerSplit == urlSplit){
-                    Log.v(TAG, "no more redirections")
                     //there was no more redirection, make a regular conection and check
                     //check the features in the url in the answer
                     this.url = cr.url!!
@@ -206,7 +199,6 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         val domain = getDomain()
         var match : String
         val matcher = Pattern.compile("(src=\"([^\"]+.js)\")").matcher(data)
-        Log.v(TAG, "domain $domain")
         while (matcher.find()) {
             match = matcher.group(2)
             if(!checkURL(match) && !match.contains("jquery", false)
@@ -257,7 +249,6 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         val urlCheck = URLCheck(url)
         shortiningService = urlCheck.shortiningService()
         savePrefence(ctx, URL_PREFERENCES, SHORTENING_SERVICE, shortiningService)
-        Log.v(TAG, "shortiningService $shortiningService")
 
         //make a conection using URLRedirect to find the final url
         val urlRedirect = URLRedirect(this, url)
@@ -276,19 +267,16 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         when {
             valuesRedirection >= 2 -> {
                 //redirection hight phisy
-                Log.v(TAG, "redirection high phishing")
                 redirect = PHISHING
                 savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
             }
             valuesRedirection == 1 -> {
                 //redirection not that high suspicious
-                Log.v(TAG, "redirection suspicious")
                 redirect = SUSPICIOUS
                 savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
             }
             else -> {
                 //redirection low legitimate
-                Log.v(TAG, "redirection low, legitimate")
                 redirect = LEGITIMATE
                 savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
             }
@@ -332,13 +320,11 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         when(urlCheck.checkDomainContainsHTTPS()){
             PHISHING -> {
                 sslFinalState = PHISHING
-                Log.v(TAG, "checkDomainContainsHTTPS phishing")
                 savePrefence(ctx, URL_PREFERENCES, SSL_FINAL_STATE, sslFinalState)
                 val ct = ConnectionHTTPTask(this, url)
                 ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONNECTION)
             }
             else -> {
-                Log.v(TAG, "checkDomainContainsHTTPS not phishing")
                 val ct = ConnectionHTTPSTask(this, url)
                 ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONNECTION)
             }
@@ -395,11 +381,11 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         }
 
         if(trustCA && expiration){
-            Log.v(TAG, "Trust CA and trust date")
+           // Log.v(TAG, "Trust CA and trust date")
             sslFinalState = LEGITIMATE
             savePrefence(ctx, URL_PREFERENCES, SSL_FINAL_STATE, sslFinalState)
         }else{
-            Log.v(TAG, "The CA is suspicious or the date")
+           // Log.v(TAG, "The CA is suspicious or the date")
             sslFinalState = SUSPICIOUS
             savePrefence(ctx, URL_PREFERENCES, SSL_FINAL_STATE, sslFinalState)
         }
@@ -917,13 +903,10 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
     private fun checkFeatures(){
         val myHandler = Handler()
         val features = getFeaturesArray_opt4()
-        Log.v(TAG, "features ${Arrays.toString(features)}")
 
         if(features.contains((-2).toFloat())) {
-            Log.v(TAG, "featuresString contains -2, try again")
             myHandler.postDelayed({checkFeatures()}, 250)
         }else{
-            Log.v(TAG, "featuresString does not contain -2")
             mListener?.siteFeatures(ctx, url, features, _id)
         }
 

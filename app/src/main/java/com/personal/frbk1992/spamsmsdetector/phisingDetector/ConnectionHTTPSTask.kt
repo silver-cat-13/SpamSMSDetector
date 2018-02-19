@@ -37,8 +37,6 @@ class ConnectionHTTPSTask(val eventHandler: EventHandler, val urlString: String,
 
             val url = URL(urlString)
 
-            Log.v(TAG, "-------urlString " + urlString)
-
             // Create the request to OpenWeatherMap, and open the connection
             urlConnection = url.openConnection() as HttpsURLConnection
             urlConnection.connectTimeout = timeOut
@@ -46,7 +44,6 @@ class ConnectionHTTPSTask(val eventHandler: EventHandler, val urlString: String,
 
             val address = InetAddress.getByName(URL(connResponse.url).host)
             connResponse.ip = address.hostAddress
-            Log.v(TAG, "-------ip " + connResponse.ip)
 
 
 
@@ -71,7 +68,6 @@ class ConnectionHTTPSTask(val eventHandler: EventHandler, val urlString: String,
             while (true) {
                 line = reader.readLine()
                 if (line == null) break //end of the text
-                if(DEBUG) Log.v(TAG, "$line")
                 buffer.append(line).append("\n")
             }
 

@@ -30,7 +30,6 @@ class URLRedirect(val eventHandler: EventHandler, val urlString: String, val tim
 
             val url = URL(urlString)
 
-            Log.v(TAG, "-------urlString " + connResponse.url)
 
             // Create the request to OpenWeatherMap, and open the connection
             urlConnection = url.openConnection() as HttpURLConnection

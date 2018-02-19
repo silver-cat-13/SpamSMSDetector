@@ -4,7 +4,7 @@ package com.personal.frbk1992.spamsmsdetector
  * File with constants
  */
 
-const val DEBUG = true
+const val DEBUG = false
 
 const val PHISHING = -1
 const val LEGITIMATE = 1

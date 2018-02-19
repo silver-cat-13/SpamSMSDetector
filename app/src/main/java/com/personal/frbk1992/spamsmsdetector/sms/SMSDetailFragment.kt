@@ -50,7 +50,8 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
         //warn the user about the spam sms en case it is spam
         if(sms?.spam!!) {
             //SMS is spam
-            fragment_sms_indicatpr_spam_phishing.text = getString(R.string.fragment_sms_indicator_spam_phishing)
+            fragment_sms_indicator_spam_phishing.visibility = View.VISIBLE
+            fragment_sms_indicator_spam_phishing.text = getString(R.string.fragment_sms_indicator_spam_phishing)
 
             //check if SMS has an URL
             if( sms!!.url != ""){
@@ -110,17 +111,6 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
     }
 
     /**
-     * Tell the fragment which menu it will load
-     */
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        if(sms?.url != "") {
-            inflater.inflate(R.menu.fragment_spam_sms_detail_menu, menu)
-
-        }
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    /**
      * This function is called when the user selected an option in the menu
      */
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -141,7 +131,8 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
      */
     fun smsIsSpam(){
         //showToast(context!!, getString(R.string.fragment_sms_indicator_spam_phishing))
-        fragment_sms_indicatpr_spam_phishing.text = getString(R.string.fragment_sms_indicator_spam_phishing)
+        fragment_sms_indicator_spam_phishing.visibility = View.VISIBLE
+        fragment_sms_indicator_spam_phishing.text = getString(R.string.fragment_sms_indicator_spam_phishing)
     }
 
     /**

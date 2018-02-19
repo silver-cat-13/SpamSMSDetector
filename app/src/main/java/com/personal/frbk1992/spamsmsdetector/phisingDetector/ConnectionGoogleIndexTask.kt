@@ -36,10 +36,8 @@ class ConnectionGoogleIndexTask(val eventHandler: EventHandler, val urlString: S
 
         try {
             val urlS = "$urlGoogleIndex${URI(urlString).host.removePrefix("www.")}"
-            Log.v(TAG, "-------urlS " + urlS)
             val url = URL(urlS)
 
-            Log.v(TAG, "-------urlString " + urlString)
 
             // Create the request to OpenWeatherMap, and open the connection
             urlConnection = url.openConnection() as HttpsURLConnection
@@ -57,7 +55,6 @@ class ConnectionGoogleIndexTask(val eventHandler: EventHandler, val urlString: S
             while (true) {
                 line = reader.readLine()
                 if (line == null) break //end of the text
-                if(DEBUG) Log.v(TAG, "$line")
                 buffer.append(line).append("\n")
             }
 
