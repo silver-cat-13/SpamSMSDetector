@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Spam SMS Detector</string>
+    <string name="app_name">SMS Spam Detector</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -80,7 +80,7 @@
     <string name="title_activity_info_app">Information</string>
 
     <!--App Info Fragment-->
-    <string name="fragment_app_info_info_app">Spam SMS Detector V0.1 was developed by Fernando Rafael Berra Kossik.
+    <string name="fragment_app_info_info_app">Spam SMS Detector V0.2 was developed by Fernando Rafael Berra Kossik.
         \n\nUsing machine learning, the application detects if a SMS is spam or not and also if an URL is linked
         to a phishing site. The application uses the Tensorflow library for the machine learning.
         It also uses two models that were preconfigured for the app, the datasets used to create

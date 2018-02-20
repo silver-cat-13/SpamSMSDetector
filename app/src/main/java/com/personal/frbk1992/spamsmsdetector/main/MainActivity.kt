@@ -30,6 +30,9 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        this.title = resources.getString(R.string.title_activity_sms);
+
         setContentView(R.layout.activity_main)
 
         // closes the activity in case another activity calls it using the EXIT intent value
