@@ -16,23 +16,32 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
- * A placeholder fragment containing a simple view.
+ * This fragment show the detail of the SMS
+ * if the SMS is Spam it will show a warning and if the SMS is spam and contains an URL it will
+ * show a floating button to check if the URL is linked to a phishing site
  */
 class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebsite {
 
+    //TAG for Logs
     private val TAG =this.javaClass.simpleName
 
-    val ARG_SMS = "sms"
-    var sms : SMSClass? = null
+    //name for the argument for the SMS
+    private val ARG_SMS = "sms"
+    private var sms : SMSClass? = null
 
+    //these two variables are used to check if the app is checking if the URL is phishing or not
+    //or if it already did.
 
-    var phishingCheck = false //this variable indicate if the button to check if the url is phishing was pressed
-    var phishingInProcess = false //this variable indicate if the app is checking if the URL is phishing is in process
+    //this variable indicate if the button to check if the url is phishing was pressed
+    private var phishingCheck = false
+    //this variable indicate if the app is checking if the URL is phishing is in process
+    private var phishingInProcess = false
 
     private var mListener: OnSMSDetailFragmentInteractionListener? = null //listener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //get the argument passed by the activity
         sms = arguments?.getParcelable(ARG_SMS)
     }
 
@@ -50,6 +59,7 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
         //warn the user about the spam sms en case it is spam
         if(sms?.spam!!) {
             //SMS is spam
+            //set the view visible
             fragment_sms_indicator_spam_phishing.visibility = View.VISIBLE
             fragment_sms_indicator_spam_phishing.text = getString(R.string.fragment_sms_indicator_spam_phishing)
 
@@ -57,7 +67,6 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
             if( sms!!.url != ""){
                 //spam sms has URL
                 fragment_sms_floating_button_test_phishing_url.visibility = View.VISIBLE
-                //use RxJava to check if the URL is a phishing site on the click in the floating button
             }
         }
 
@@ -68,9 +77,11 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
                 .subscribe({ _ ->
                     //Perform some work here//
                     if(sms!!.phishing){
-                        //site is phishing
+                        //site is phishing, there is no need to check
                         showToast(activity!!.applicationContext,
                                 getString(R.string.fragment_sms_check_url_for_phishing_url_phishing))
+                        //set phishingCheck to true to indicate it was already checked and
+                        //phishingInProcess to false
                         phishingInProcess = false
                         phishingCheck = true
                     }else if(phishingCheck && !sms!!.phishing){
@@ -88,6 +99,7 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
 
                         //check if URL is phishing here
                         FindValuesURL(context!!, fragment = this, url = sms!!.url, _id= sms!!.id).getFeatures()
+                        //phishingInProcess to true to indicate the app is checking if the URL is phishing
                         phishingInProcess = true
 
                     }
@@ -110,24 +122,12 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
         mListener = null
     }
 
-    /**
-     * This function is called when the user selected an option in the menu
-     */
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when(item?.itemId){
-            R.id.fragment_spam_sms_detail_test_url_id ->{
-                //the test the url if it is an phishing site
-                sms!!.url = "http://www.maciel.med.br/"
-                val test = FindValuesURL(context!!, fragment = this, url = sms!!.url, _id= sms!!.id)
-                test.checkShortUrl()
-            }
-        }
-        return false
-    }
+
 
 
     /**
      * Function called when the Activity when the SMS given is spam
+     * it shows the warn about the sms is spam
      */
     fun smsIsSpam(){
         //showToast(context!!, getString(R.string.fragment_sms_indicator_spam_phishing))
@@ -137,11 +137,16 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
 
     /**
      * Function called by the Activity when the SMS is SPAM and contains an URL
+     * it sets into visible the floating button
      */
     fun smsContainsURL(){
         fragment_sms_floating_button_test_phishing_url.visibility = View.VISIBLE
     }
 
+    /**
+     * Funtion called when the app have the result if the url is phishing or not, set the value of the
+     * set the value ofthe sms instance and set the boolean values to the specific values
+     */
     fun sitePhishingResult(result : Boolean){
         sms!!.phishing = result
 
@@ -160,8 +165,8 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
      * this function is called when all the features has been detected
      */
     override fun siteFeatures(ctx: Context, url: String, features: FloatArray, _id: Int) {
-        Log.v(TAG, "url $url")
-        Log.v(TAG, "features ${Arrays.toString(features)}")
+        //Log.v(TAG, "url $url")
+       // Log.v(TAG, "features ${Arrays.toString(features)}")
 
         //check if site is phishing
         mListener?.detectPhishingSite(features)!!
@@ -183,6 +188,9 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
 
         val ARG_SMS = "sms"
 
+        /**
+         * Create an instance of the fragment with the value of the SMSClass instance
+         */
         fun newInstance(sms : SMSClass): SMSDetailFragment{
             val fragment = SMSDetailFragment()
             val args = Bundle()

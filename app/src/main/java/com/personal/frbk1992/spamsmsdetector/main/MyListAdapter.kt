@@ -12,14 +12,16 @@ import com.personal.frbk1992.spamsmsdetector.SMSClass
 
 
 /**
- *
  * Class adapter for the list
+ * Class constructor
+ * @param mContext: The Activity context
+ * @param mValues: The list of SMS given by the SMSClass
  */
 class MyListAdapter(val mContext: Context?,
-                    val mValues: ArrayList<SMSClass>?,
-                    val mListener : SMSListFragment.OnSMSListFragmentInteractionListener?)
+                    val mValues: ArrayList<SMSClass>?)
     : ArrayAdapter<SMSClass>(mContext, R.layout.content_note, R.id.text_view_list_title, mValues) {
 
+    //TAG for the logs
     private val TAG = this.javaClass.simpleName
 
     /*
@@ -41,6 +43,7 @@ class MyListAdapter(val mContext: Context?,
         val view : View = LayoutInflater.from(mContext)
                 .inflate(R.layout.content_note, parent, false)
 
+        //get all the views ids and save them in the ViewHolder class
         val holder = ViewHolder()
         holder.mView = view
         holder.mTitleView = view.findViewById(R.id.text_view_list_title)
@@ -56,21 +59,29 @@ class MyListAdapter(val mContext: Context?,
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //                         Metodos de la clase MyNotesListViewAdapter                         //
+    //                           Functions of the  MyNotesListViewAdapter                         //
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Function that removes an SMS
+     * @param sms: SMS to be removed
+     */
     override fun remove(sms: SMSClass) {
         mValues!!.remove(sms)
         notifyDataSetChanged()
     }
 
+    /**
+     * Get all the SMS in an ArrayList
+     */
     fun getAllSMS(): ArrayList<SMSClass>? = mValues
 
 
     /*
-    Funcion que se llama cuando se actualiza la lista de sms
-    */
-    fun update(smsList: List<SMSClass>?): Boolean {
+     * Function to be called when the SMS List is updated with a new list.
+     * @param smsList: new list of SMS to be shown
+     */
+    /*fun update(smsList: List<SMSClass>?): Boolean {
         if (smsList == null) {
             Log.e(TAG, "Error con lista")
             return false
@@ -85,6 +96,6 @@ class MyListAdapter(val mContext: Context?,
         }
         Log.e(TAG, "Error actualizando lista")
         return false
-    }
+    }*/
 
 }

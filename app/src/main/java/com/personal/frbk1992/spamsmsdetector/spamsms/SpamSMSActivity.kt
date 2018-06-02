@@ -38,16 +38,21 @@ import kotlin.collections.ArrayList
 class SpamSMSActivity : AppCompatActivity(),
         SpamSMSActivityFragment.OnSMSSpamListFragmentInteractionListener {
 
+    //TAG used for Logs
     private val TAG = this.javaClass.simpleName
 
+    //constants values used if the classifiers will be created or destroyed
     private val INIT_CLASSIFIER = 1
     private val DESTROY_CLASSIFIER = 2
 
+    //classifier for spam SMS
     private var smsSpamClassifier: SMSSpamClassifier? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //set the view
         setContentView(R.layout.activity_spam_sms)
+        //set the action bar
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 

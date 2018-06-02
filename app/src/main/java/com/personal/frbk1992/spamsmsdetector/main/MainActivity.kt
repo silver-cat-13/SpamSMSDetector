@@ -6,8 +6,10 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import com.personal.frbk1992.spamsmsdetector.*
 import com.personal.frbk1992.spamsmsdetector.appInfo.AppInfoActivity
+import com.personal.frbk1992.spamsmsdetector.main.SMSListFragment.OnSMSListFragmentInteractionListener
 import com.personal.frbk1992.spamsmsdetector.sms.SMSActivity
 import com.personal.frbk1992.spamsmsdetector.spamsms.SpamSMSActivity
 import com.tbruyelle.rxpermissions2.RxPermissions
@@ -16,12 +18,13 @@ import kotlinx.android.synthetic.main.app_bar_main.*
 
 /**
  * This is the main activity, this activity call the SMSListFragment fragment where the sms list will
- * show
+ * show, the class implements [OnSMSListFragmentInteractionListener], which is a
+ * custom interface used by the SMSListFragment fragment to called function from the activity
  * @see SMSListFragment
  */
 class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInteractionListener{
 
-
+    //tag used for Log
     private val TAG = this.javaClass.simpleName
 
     //create the RxPermission
@@ -31,18 +34,24 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        this.title = resources.getString(R.string.title_activity_sms);
-
-        setContentView(R.layout.activity_main)
-
         // closes the activity in case another activity calls it using the EXIT intent value
         // this is use when an activity is closing all the activities
+        // This may happened if the user decides to remove the permission to read SMS to the app
+        // while another activity, other than MainActivity, is open. the Activity that is currently open
+        // finish and the MainActivity with it
         if (intent.getBooleanExtra(EXIT, false)) {
             finish()
         }
+
+
+        //set the title of the activity
+        this.title = resources.getString(R.string.title_activity_sms)
+
+        //set the layout
+        setContentView(R.layout.activity_main)
+
+        //set the toolbar
         setSupportActionBar(toolbar)
-
-
 
         //call the SMSListFragment and check for SMS permission and ask for it in case it's need it
         if (savedInstanceState == null) {
@@ -69,7 +78,7 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Funtion that retrieve all sms in the phone
+     * Function that retrieve all sms in the phone and creates an ArrayList<SMSClass> with each SMS
      * @return List of all SMS
      */
     override fun getSMS(): ArrayList<SMSClass> {
@@ -80,14 +89,18 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
                 null, null, null, null)
 
         while (cur != null && cur.moveToNext()) {
-            val id = cur.getString(cur.getColumnIndex("_id"))
-            val address = cur.getString(cur.getColumnIndex("address"))
-            val body = cur.getString(cur.getColumnIndexOrThrow("body"))
-            sms.add(SMSClass(id.toInt(), address, body))
+            //check if the SMS is correct
+            try {
+                val id = cur.getString(cur.getColumnIndex("_id"))
+                val address = cur.getString(cur.getColumnIndex("address"))
+                val body = cur.getString(cur.getColumnIndexOrThrow("body"))
+                sms.add(SMSClass(id.toInt(), address, body))
+            }catch (e : java.lang.IllegalStateException){
+                //an IllegalStateException by one SMS, it will be not taken into account
+                Log.e(TAG, "Error with one SMS ${e.message}")
+            }
         }
         cur?.close()
-
-
         return sms
     }
 
@@ -110,18 +123,11 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
     }
 
 
-
-
-    //list of spam sms that are spam sms
-  //  private var smsSpamList : SparseArray<SMSClass>? = null
-
-
     /**
-     * Function that check all the sms to look for all spam sms
+     * Function that will call the SpamSMSActivity, this activity shows all spam SMS
      */
-    override fun testAllSMSForSpam(smsList : ArrayList<SMSClass>) {
+    override fun goSpamSMSActivity(smsList : ArrayList<SMSClass>) {
         val intent = Intent(baseContext, SpamSMSActivity::class.java)
-        //intent.putExtra(SMS_DETAIL_ACTIVITY, sms)
         startActivity(intent)
 
     }
@@ -135,8 +141,9 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
     //                                      MainActivity  Functions                               //
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+
     /**
-     * Funcion que inicializa un fragment
+     * Start a fragment given an instance of the fragment and a TAG
      * @param fragment el fragment a inicializar
      * @param tag el tag que va a tener el Fragment
      */
@@ -153,13 +160,13 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
 
 
     /**
-     * Show a dialog that ends the activity when it dismissed
-     * @param title el titulo del dialog
-     * @param content el mensaje
-     * @param bottonMsg el boton neutral
+     * Show a dialog that ends the activity when it dismissed, this dialog is used if the user
+     * do not accept the permission for reading SMS.
+     * @param title title of the dialog
+     * @param content content of the dialog
+     * @param bottonMsg text in the button
      */
     private fun showNeutralDialogFinishActivity(title: String, content: String, bottonMsg: String) {
-        //Dialogo de alerta que aparece cuando se preciona acerca de
         val alert = android.app.AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(content)
@@ -167,6 +174,7 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
                     //empty
                 }
                 .create()
+        //when the dialog dismiss call this function
         alert.setOnDismissListener {
             //finish the activity
             finish()

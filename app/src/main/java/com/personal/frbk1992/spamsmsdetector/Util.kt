@@ -88,7 +88,11 @@ fun deleteAllPreferences(c: Context, pref: String) {
 }
 
 
-
+/*
+This function is to create a String value with all the features of a possible phishing website
+and the result, it is used for log
+ */
+/*
 fun getStringAtributes(floatArray: FloatArray) : String{
     var attributes = ""
 
@@ -248,4 +252,4 @@ fun getStringAtributes(floatArray: FloatArray) : String{
 
     return attributes
 }
-
+*/

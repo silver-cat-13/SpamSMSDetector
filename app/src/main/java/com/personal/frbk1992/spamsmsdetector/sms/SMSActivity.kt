@@ -19,38 +19,52 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_sms.*
 import java.util.concurrent.Callable
 
+/**
+ * This activity is used to show the detail of the activity, if the SMS is Spam it will show a warning
+ * at the top of the fragment and if it contains a URL and it is spam, it will show a floating button
+ * to checl if the URL is linked to a phishing site
+ */
 class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentInteractionListener {
 
+    //SMSClass instance
     var sms : SMSClass? = SMSClass()
 
+    //TAG for logs
     private val TAG = this.javaClass.simpleName
 
+    //String with ID of the SMS to save the SMS with savedInstanceState
     private val SMS = "sms"
 
+    //variables used to indicate if the classifier must be created or destroyed
     private val INIT_CLASSIFIER = 1
     private val DESTROY_CLASSIFIER = 2
 
+    //SMS and Phishing classifiers
     private var phishingClassifier: PhishingClassifier? = null
     private var smsSpamClassifier : SMSSpamClassifier? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //set the view
         setContentView(R.layout.activity_sms)
+        //set a toolbar
         setSupportActionBar(toolbar)
 
+        //show the toolbar
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        //get the sms
+        //get the sms from the intent
         val bundle = intent.extras
         if(bundle != null){
             sms = bundle.getParcelable(SMS_DETAIL_ACTIVITY)
         }
 
+        //get the sms form savedInstanceState
         if(savedInstanceState != null){
             sms = savedInstanceState.getParcelable(SMS)
         }
 
-        //get the URL, in case there are no URL it stays at ""
+        //get the URL, in case there is one
         sms!!.url = SMSSpamClassifier.getUrlFromSMS(sms!!.content)
 
         //call the SMSListFragment
@@ -62,6 +76,7 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
     }
 
     override fun onDestroy() {
+        //destroy the classifier
         Single.just(DESTROY_CLASSIFIER)
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(singlePhishingClassifier(this))
@@ -88,7 +103,9 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * This function is called to detect if the features of a site is a phishing site
+     * This function is called to detect if the features of a site is a phishing site, it uses the
+     * phishing classifier for it
+     * @param features: float array with all values of the features [-1.0, 0.0 or 1.0]
      */
     override fun detectPhishingSite(features: FloatArray): Boolean {
 
@@ -99,8 +116,9 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : SingleObserver<Boolean>{
                     override fun onSuccess(t: Boolean) {
-                        //tell the fragment the answer about thephishing site
-                        val fragment = supportFragmentManager.findFragmentById(R.id.sms_container) as? SMSDetailFragment
+                        //tell the fragment the answer about the phishing site
+                        val fragment = supportFragmentManager.findFragmentById(R.id.sms_container)
+                                as? SMSDetailFragment
                         fragment?.sitePhishingResult(t)
                     }
 
@@ -130,7 +148,7 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Funcion que inicializa un fragment
+     * Start the fragment
      * @param fragment el fragment a inicializar
      * @param tag el tag que va a tener el Fragment
      */
@@ -166,7 +184,7 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
             }
 
             //SMS does contains URL
-            //tell the fragment about it
+            //tell the fragment about it to show the floating button
             val fragment = supportFragmentManager.findFragmentById(R.id.sms_container) as? SMSDetailFragment
             fragment?.smsContainsURL()
         }
@@ -181,11 +199,10 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
         return object : SingleObserver<Int>{
 
             override fun onSuccess(t: Int) {
-                Log.e(TAG, "Thread Name 2 ${Thread.currentThread().name}")
                 when(t){
                     INIT_CLASSIFIER ->{
                         Log.i(TAG, "Creating model for phishing classifier")
-
+                        //create the model
                         phishingClassifier = PhishingClassifier().create(
                                 assetManager = context.assets,
                                 modelFilename = PHISHING_MODEL_FILE,
@@ -194,6 +211,7 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
 
                     }DESTROY_CLASSIFIER ->{
                         Log.i(TAG, "Closing phishing classifier")
+                        //close the model
                         phishingClassifier?.close()
                     }
                 }
@@ -265,7 +283,7 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
                     modelFilename = SMS_MODEL_FILE,
                     inputName = INPUT,
                     outputName = OUTPUT)
-
+            //check if the sms is spam, get all features first
             smsSpamClassifier!!.isSpam(SMSSpamClassifier.getFeaturesForSpamClassifier(sms!!.content))
         }
     }
@@ -281,21 +299,22 @@ class SMSActivity : AppCompatActivity(), SMSDetailFragment.OnSMSDetailFragmentIn
 
             override fun onSuccess(t: Boolean) {
                 if (t) {
-                    if(sms!!.url != "" && phishingClassifier == null) {
-                        //init phishing model
-                        Single.just(INIT_CLASSIFIER)
-                                .subscribeOn(Schedulers.newThread())
-                                .subscribe(singlePhishingClassifier(applicationContext))
-                    }
-
                     //SMS is Spam
-                    val fragment = supportFragmentManager.findFragmentById(R.id.sms_container) as? SMSDetailFragment
+                    val fragment = supportFragmentManager.findFragmentById(R.id.sms_container)
+                            as? SMSDetailFragment
                     fragment?.smsIsSpam()
 
                     if(sms!!.url != ""){
                         //SMS does contains URL
                         //tell the fragment about it
                         fragment?.smsContainsURL()
+                        if(phishingClassifier == null) {
+                            //sms has an URL but the phishingClassifier is null
+                            //init phishing model
+                            Single.just(INIT_CLASSIFIER)
+                                    .subscribeOn(Schedulers.newThread())
+                                    .subscribe(singlePhishingClassifier(applicationContext))
+                        }
                     }
 
                 }

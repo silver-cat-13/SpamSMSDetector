@@ -24,27 +24,37 @@ import org.apache.commons.lang3.StringUtils
 import android.os.Build
 
 
-/*
-This is  areceover class, this class is called when an incoming sms is in the phone
+/**
+ * The broadcast receiver is called when there is an incoming SMS, it checks if the SMS is spam or not
+ * and if it is spam check if it contains an URL and proceeds to check if it is phishing the site or not.
+ * It wanrs the user in case the SMS is spam or spam and phishing with different messages via a
+ * notification
  */
 class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingWebsite{
 
 
+    //Tag for the logs
     private val TAG = this.javaClass.simpleName
 
+    //classifiers
     private var phishingClassifier: PhishingClassifier? = null
     private var smsSpamClassifier: SMSSpamClassifier? = null
 
+    //values that indicate if the classifier must be start or closed
     private val INIT_CLASSIFIER = 1
     private val DESTROY_CLASSIFIER = 2
 
+    // possible results for the notification, this values are used to change the icon in the
+    //notification
     private val SPAM_SMS = 1
     private val SPAM_PHISHING_SMS = 2
 
+    //receiving new SMS
     override fun onReceive(context: Context, intent: Intent) {
 
         val bundle = intent.extras
         if (bundle != null) {
+            //getting the SMS
             Log.i(TAG, "SMSReceiver : Reading Bundle")
 
             val pdus = bundle.get("pdus") as Array<*>
@@ -57,7 +67,7 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
     }
 
     /**
-     * Function that shows a notification of the sms
+     * Function that shows the notification of the sms in case is spam or spam and phishing
      */
     private fun showNotification(ctx : Context, sms : String, title: String, result: Int){
         val mNotificationManager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -87,16 +97,19 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
 
             mChannel?.enableVibration(true)
 
-            mNotificationManager.createNotificationChannel(mChannel);
+            mNotificationManager.createNotificationChannel(mChannel)
         }
 
         //set the notification icon
         val notificationIcon = if(result == SPAM_SMS){
+            //notification for spam sms
             R.drawable.ic_spam_sms_notification
         }else{
+            //notfication for spam and phishing sms
             R.drawable.ic_spam_phighing_notification
         }
 
+        //build the notification
         val mBuilder = NotificationCompat.Builder(ctx, channelId)
                 .setSmallIcon(notificationIcon)
                 .setAutoCancel(true)
@@ -134,39 +147,38 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
         val featuresSMS = FloatArray(SMSSpamClassifier.ATTRIBUTE_AMOUNT)
 
         for (i in BAG_OF_WORDS.indices){
-            //count the amount of words in the sms
+            //count the amount of words in the sms and set the features in the featuresSMS array
             val amountWords = StringUtils.countMatches(sms, BAG_OF_WORDS[i])
             featuresSMS[i] = amountWords.toFloat()
         }
 
-
-
-        //create observable that check if the features correspond to a phishing site
+        //create observable that check if the features correspond to a spam sms
         val featuresObservable = Single.fromCallable{
             smsSpamClassifier = SMSSpamClassifier().create(
                     assetManager = ctx.assets,
                     modelFilename = SMS_MODEL_FILE,
                     inputName = INPUT,
                     outputName = OUTPUT)
+            //output for the callable, which is a boolean
             smsSpamClassifier!!.isSpam(featuresSMS)
         }
+        //set the callable in a new thread, using the main thread in the result
         featuresObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : SingleObserver<Boolean>{
                     override fun onSuccess(t: Boolean) {
                         //closing classifier
+                        //the function always get a single SMS, there is no need to keep the classifier
+                        //open any longer
                         Single.just(DESTROY_CLASSIFIER)
                                 .subscribeOn(Schedulers.newThread())
                                 .subscribe(singleSMSSPamClassifier(ctx))
                         if(t) {
                             Log.v(TAG, "User just received SPAM sms")
-                            // SMS contains phishing site
+                            // SMS is spam, check if it has an URL
                             checkForUrl(ctx, sms)
-                        }else{
-                            Log.v(TAG, "SMS is not Spam")
                         }
-
                     }
 
                     override fun onError(e: Throwable) {
@@ -218,8 +230,10 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
                     modelFilename = PHISHING_MODEL_FILE,
                     inputName = INPUT,
                     outputName = OUTPUT)
+            //callable that will return a boolean if the site is phishing or note
             phishingClassifier!!.isPhishing(features)
         }
+        //check if the URL is phishing
         featuresObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -233,7 +247,7 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
                             showNotification(ctx, ctx.getString(R.string.notification_message_warning_spam_phishing_message),
                                     ctx.getString(R.string.notification_message_warning_title), SPAM_PHISHING_SMS)
                         }
-                        else //SMS does not contain phishing site
+                        else //SMS does not contain phishing site but it is still spam
                             showNotification(ctx, ctx.getString(R.string.notification_message_warning_spam_message),
                                     ctx.getString(R.string.notification_message_warning_title), SPAM_SMS)
                     }
