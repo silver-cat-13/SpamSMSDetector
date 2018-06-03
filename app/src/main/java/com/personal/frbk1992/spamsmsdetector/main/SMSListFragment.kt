@@ -25,7 +25,7 @@ class SMSListFragment : ListFragment(){
     private var mListView : ListView? = null
     lateinit var myListAdapter : MyListAdapter
     //list of the SMS to be shown
-    private  lateinit var smsList : ArrayList<SMSClass>
+    lateinit var smsList : ArrayList<SMSClass>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {

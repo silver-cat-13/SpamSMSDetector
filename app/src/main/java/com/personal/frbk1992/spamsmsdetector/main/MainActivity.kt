@@ -83,6 +83,23 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
      */
     override fun getSMS(): ArrayList<SMSClass> {
         val sms = ArrayList<SMSClass>()
+        /*
+        val sms1 = SMSClass(1, "+10000000", "This is no spam", spam = false)
+        val sms2 = SMSClass(1, "+10000000", "On your laptop")
+        val sms3 = SMSClass(1, "+10000000", "This is spam", spam = true)
+        val sms4 = SMSClass(1
+                , "+10000000"
+                , "Your R0YALBANK services has been disabled for safety! Please visit the link below in order to reactivate your account rbc.com.verifybanssl.com/?12506615001"
+        )
+        val sms5 = SMSClass(1
+                , "+10000000"
+                , "Hi there! Check my message in new social network. Waiting for your reply... My link: http://u.to/3_fEEQ"
+        )
+        sms.add(sms1)
+        sms.add(sms2)
+        sms.add(sms3)
+        sms.add(sms4)
+        sms.add(sms5)*/
 
         val uriSMSURI = Uri.parse("content://sms/inbox")
         val cur = contentResolver.query(uriSMSURI,
@@ -101,6 +118,9 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
             }
         }
         cur?.close()
+
+
+
         return sms
     }
 

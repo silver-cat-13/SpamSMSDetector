@@ -77,25 +77,30 @@ class MyListAdapter(val mContext: Context?,
     fun getAllSMS(): ArrayList<SMSClass>? = mValues
 
 
-    /*
+    /**
      * Function to be called when the SMS List is updated with a new list.
      * @param smsList: new list of SMS to be shown
      */
-    /*fun update(smsList: List<SMSClass>?): Boolean {
+    fun update(smsList: List<SMSClass>?): Boolean {
+        //if the list is null return false
         if (smsList == null) {
-            Log.e(TAG, "Error con lista")
+            Log.e(TAG, "error, list input is null")
             return false
         }
+        //clear the current list
         mValues?.clear()
 
+        //add the new values
         val addList = mValues!!.addAll(smsList)
 
         if (addList) {
+            //notify the adapter about the change
             notifyDataSetChanged()
             return true
         }
-        Log.e(TAG, "Error actualizando lista")
+        //error adding new values
+        Log.e(TAG, "error updating the list")
         return false
-    }*/
+    }
 
 }
