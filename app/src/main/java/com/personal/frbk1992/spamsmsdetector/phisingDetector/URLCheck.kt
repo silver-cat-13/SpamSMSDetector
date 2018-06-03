@@ -10,7 +10,8 @@ import java.net.URL
 
 
 /**
- * class that given an URL check
+ * class that given an URL check all possible features of the URL, like the size of it
+ * if an URL is an IP address and more
  */
 class URLCheck(val url : String){
 

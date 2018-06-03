@@ -6,56 +6,52 @@ import android.util.Log
 import java.io.IOException
 import org.apache.commons.net.whois.WhoisClient
 import java.net.*
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+
 
 
 /**
- * Made a http connection, the class receive a the interface EventHandler and the url as
- * parameters and the timeout, the timeout is 60 seconds by default
+ * Make an async connection to the whois.internic.net using the [org.apache.commons.net.whois.WhoisClient]
+ * library.
+ * @param eventHandler: EventHandler instance used to return the result
+ * @param urlString: URL input
  */
-class WhoisClientTask(val eventHandler: EventHandler, val urlString: String, val timeOut: Int = 60000)
+class WhoisClientTask(val eventHandler: EventHandler, val urlString: String)
     : AsyncTask<Int, Unit, ConnectionResponse>() {
 
-
+    // Tag for logs
     private val TAG = this.javaClass.simpleName
 
-    private var pattern: Pattern? = null
-    private var matcher: Matcher? = null
+   // private var pattern: Pattern? = null
+   // private var matcher: Matcher? = null
 
     // regex whois parser
-    private val WHOIS_SERVER_PATTERN = "Whois Server:\\s(.*)"
+   // private val WHOIS_SERVER_PATTERN = "Whois Server:\\s(.*)"
 
-    override fun onPreExecute() {
-        super.onPreExecute()
-        eventHandler.startedRequest()
-    }
 
+    /**
+     * DO the connection
+     */
     override fun doInBackground(vararg code: Int?): ConnectionResponse {
 
         val result = StringBuilder("")
 
+        // init the WhoIsClient instance
         val whois = WhoisClient()
         val connResponse = ConnectionResponse(url = urlString, code = code[0])
 
         try {
 
-            whois.connect(WhoisClient.DEFAULT_HOST)
+            // set the default host whois.internic.net and default port 43
+            whois.connect(WhoisClient.DEFAULT_HOST, WhoisClient.DEFAULT_PORT)
             Log.v(TAG, "query = ${URI(connResponse.url).host.removePrefix("www.")}")
-            val whoisData1 = whois.query("= ${URI(connResponse.url).host.removePrefix("www.")}")
 
+            // set the query
+            val whoisData1 = whois.query("=${URI(connResponse.url).host.removePrefix("www.")}")
             // append first result
             result.append(whoisData1)
+
+            //close
             whois.disconnect()
-
-            val whoisServerUrl = getWhoisServer(whoisData1)
-            if (whoisServerUrl != "") {
-
-                val whoisData2 = queryWithWhoisServer(URI(connResponse.url).host, whoisServerUrl)
-
-                // append 2nd result
-                result.append(whoisData2)
-            }
 
             connResponse.answer = result.toString()
 
@@ -75,41 +71,43 @@ class WhoisClientTask(val eventHandler: EventHandler, val urlString: String, val
         return connResponse
     }
 
-
+    /**
+     * Function called after the doInBackground is done
+     */
     override fun onPostExecute(result: ConnectionResponse?) {
-        eventHandler.endedRequest()
+        //return the result
         eventHandler.finished(result!!)
     }
 
-    @Throws(SocketException::class, IOException::class)
-    private fun queryWithWhoisServer(domainName: String, whoisServer: String): String {
-
-        var result: String
-        val whois = WhoisClient()
-        whois.connect(whoisServer)
-        result = whois.query(domainName)
-        whois.disconnect()
-
-        return result
-
-    }
-
-    private fun getWhoisServer(whois: String): String {
-
-        pattern = Pattern.compile(WHOIS_SERVER_PATTERN)
-
-        var result = ""
-
-        matcher = pattern!!.matcher(whois)
-
-        // get last whois server
-        while (matcher!!.find()) {
-            result = matcher!!.group(1)
-        }
-        return result
-    }
-
-
-
-
+// This was a Test
+//
+//    @Throws(SocketException::class, IOException::class)
+//    private fun queryWithWhoisServer(domainName: String, whoisServer: String): String {
+//
+//        var result: String
+//        val whois = WhoisClient()
+//        whois.connect(whoisServer)
+//        result = whois.query(domainName)
+//        whois.disconnect()
+//
+//        return result
+//
+//    }
+//
+//    private fun getWhoisServer(whois: String): String {
+//
+//        pattern = Pattern.compile(WHOIS_SERVER_PATTERN)
+//
+//        var result = ""
+//
+//        matcher = pattern!!.matcher(whois)
+//
+//        // get last whois server
+//        while (matcher!!.find()) {
+//            result = matcher!!.group(1)
+//        }
+//        return result
+//    }
+//
+//
 }

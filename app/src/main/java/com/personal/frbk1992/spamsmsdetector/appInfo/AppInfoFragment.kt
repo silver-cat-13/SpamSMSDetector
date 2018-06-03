@@ -19,6 +19,7 @@ import java.io.IOException
  */
 class AppInfoFragment : Fragment() {
 
+    //TAG for the logs
     private val TAG = this.javaClass.simpleName
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -32,6 +33,9 @@ class AppInfoFragment : Fragment() {
         fragment_app_info_text_view_apache_license.text = getLicenseAsset()
     }
 
+    /**
+     * Get the Apache license in a String value
+     */
     private fun getLicenseAsset() : String{
 
         return try {
@@ -40,11 +44,12 @@ class AppInfoFragment : Fragment() {
             val buffer = ByteArray(size)
             stream.read(buffer)
             stream.close()
+            //return the license
             String(buffer)
         } catch (e : IOException) {
             // Handle exceptions here
             Log.e(TAG, "error reading the apache license")
-            "..."
+            throw RuntimeException("Error while reading the license file.")
         }
     }
 

@@ -206,7 +206,7 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
         val url = SMSSpamClassifier.getUrlFromSMS(sms)
         if(url != ""){
             //SMS has URL
-            val test = FindValuesURL(ctx, receiver = this,  url = url)
+            val test = FindValuesURL<BroadcastReceiver>(ctx, listener = this,  url = url)
             test.getFeatures()
         } else {
             //SMS has no URL
@@ -222,7 +222,7 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
     /**
      * Function is called when the class FindValuesURL find all the features in the url
      */
-    override fun siteFeatures(ctx : Context, url : String ,features: FloatArray, _id : Int) {
+    override fun siteFeatures(ctx : Context, url : String ,features: FloatArray) {
         //create observable that check if the features correspond to a phishing site
         val featuresObservable = Single.fromCallable{
             phishingClassifier = PhishingClassifier().create(
@@ -268,7 +268,12 @@ class SMSReceiver : BroadcastReceiver(), FindValuesURL.OnFinishFeaturesPhishingW
                 })
     }
 
-
+    /**
+     * There was an error checking the URL
+     */
+    override fun errorNoFoundUrl() {
+        //blank
+    }
 
     /**
      * This function return a single of RxJava where create/destroy the PhishingClassifier

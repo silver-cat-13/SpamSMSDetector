@@ -9,12 +9,12 @@ import java.util.*
 
 
 /**
- * Created by frbk on 12-Nov-17.
- *
- * class that detects a phishing website using the model
+ * Class that creates a classifier that can be used to detect if an URL is linked to a phishing site
+ * or note
  */
 class PhishingClassifier : Classifier {
 
+    //TAG for the logs
     private val TAG = this.javaClass.simpleName
 
     // Config values.
@@ -25,33 +25,50 @@ class PhishingClassifier : Classifier {
     private var outputs: FloatArray? = null
     private var outputNames: Array<String>? = null
 
+    //Tensorflow interface
     private var inferenceInterface: TensorFlowInferenceInterface? = null
 
+    //variable used to set the debug state the tensorflow interface
     private var runStats = false
 
+    //results if it is pshihing or not
     private val PHISHING = "P"
     private val NO_PHISHING = "N"
 
+    //number of features
     private val ATTRIBUTE_AMOUNT = 17
 
 
-
+    /**
+     * Create the classifier to classify if a set of features correspond to a phishing site or not
+     * @param assetManager: the asset manager given by the context, it is used to get the model file
+     * @param modelFilename: the name of the model used to clasify the features
+     * @param inputName: name of the input parameters
+     * @param outputName: name of the output parameters
+     * @return the classifier
+     */
     fun create(assetManager: AssetManager,
                modelFilename : String,
                inputName : String,
                outputName : String) : PhishingClassifier {
 
+        // init the classifier
         val c = PhishingClassifier()
+        // set the input and output values
         c.inputName = inputName
         c.outputName = outputName
 
+        // set the TensorFlow interface
         c.inferenceInterface = TensorFlowInferenceInterface(assetManager, modelFilename)
 
-        // The shape of the output is [N, NUM_CLASSES], where N is the batch size.
-        val numClasses = c.inferenceInterface!!.graph().operation(outputName).output<Any>(0).shape().size(1).toInt()
-        Log.i(TAG, "Output layer size is $numClasses")
+        // the shape of the output is [N, NUM_CLASSES], where N is the batch size.
+        // for the class of this classifier is an array of 2 possible values
+        val numClasses = c.inferenceInterface!!.graph()
+                .operation(outputName)
+                .output<Any>(0).shape()
+                .size(1).toInt()
 
-        // Pre-allocate buffers.
+        // pre-allocate buffers.
         c.outputNames = arrayOf(outputName)
         c.outputs = FloatArray(numClasses)
 
@@ -62,6 +79,8 @@ class PhishingClassifier : Classifier {
 
     /**
      * Classify the input
+     * @param input: an FloatArray with the result of each feature
+     * @return a String "P" or "N" indicating if it is phishing or not
      */
     override fun classify(input: FloatArray): String {
 
@@ -70,25 +89,25 @@ class PhishingClassifier : Classifier {
                     "must be divisible by $ATTRIBUTE_AMOUNT")
         }
 
-        // Log this method so that it can be analyzed with systrace.
-        TraceCompat.beginSection("recognizeImage")
+        // log this method so that it can be analyzed with systrace.
+        TraceCompat.beginSection("getFeaturesInput")
 
-        // Copy the input data into TensorFlow.
+        // copy the input data into TensorFlow.
         TraceCompat.beginSection("feed")
         inferenceInterface!!.feed(inputName, input, input.size.toLong())
         TraceCompat.endSection()
 
-        // Run the inference call.
+        // run the inference call.
         TraceCompat.beginSection("run")
         inferenceInterface!!.run(outputNames, runStats)
         TraceCompat.endSection()
 
-        // Copy the output Tensor back into the output array
+        // copy the output Tensor back into the output array
         TraceCompat.beginSection("fetch")
         inferenceInterface!!.fetch(outputName, outputs)
         TraceCompat.endSection()
 
-        Log.i(TAG, "Result of the classifier ${Arrays.toString(outputs)}")
+      //  Log.i(TAG, "Result of the classifier ${Arrays.toString(outputs)}")
 
         var phishingResult = NO_PHISHING
 
@@ -96,13 +115,13 @@ class PhishingClassifier : Classifier {
             phishingResult = PHISHING
         }
 
-        TraceCompat.endSection() // recognize page
+        TraceCompat.endSection()
 
         return phishingResult
     }
 
 
-    /**
+    /*
      * Classify several inputs, the size of the input must be the amount of features * the amount
      * of samples
      *
@@ -112,7 +131,7 @@ class PhishingClassifier : Classifier {
      * the output will be an array of size M * 2, for each sample will generate
      * the output
      */
-    fun classifySeveralSites(input: FloatArray): FloatArray {
+    /*fun classifySeveralSites(input: FloatArray): FloatArray {
 
 
         //var fb = FloatBuffer.allocate(2)
@@ -147,18 +166,9 @@ class PhishingClassifier : Classifier {
         TraceCompat.endSection() // recognize page
 
         return fa
-    }
+    }*/
 
 
-    /**
-     * get the statString from the inference
-     */
-    override fun getStatString(): String = inferenceInterface!!.statString
-
-    /**
-     * Activate or deactivate the inference in debug mode
-     */
-    override fun enableStatLogging(debug: Boolean){runStats = debug}
 
     /**
      * close the TensorFlowInferenceInterface

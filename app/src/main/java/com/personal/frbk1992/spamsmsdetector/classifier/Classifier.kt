@@ -5,23 +5,9 @@ package com.personal.frbk1992.spamsmsdetector.classifier
  */
 interface Classifier {
 
-    /**
-     * An immutable result returned by a Classifier describing what was recognized.
-     *
-     * id: A unique identifier for what has been recognized. Specific to the class,
-     * not the instance of the object.
-     *
-     * title: Display name for the recognition.
-     *
-     * confidence: A sortable score for how good the recognition is relative to others. Higher should be better.
-
-    data class Recognition(val id: String?, val title: String?, val confidence: Float?) */
-
-    fun enableStatLogging(debug: Boolean)
-
-    fun getStatString(): String
-
+    //function to be called when the classifier get closed
     fun close()
 
+    //function to be called to classify an input
     fun classify(input: FloatArray): String
 }

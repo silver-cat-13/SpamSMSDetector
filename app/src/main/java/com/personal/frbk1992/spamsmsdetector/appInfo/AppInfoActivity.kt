@@ -7,12 +7,18 @@ import com.personal.frbk1992.spamsmsdetector.APP_INFO_FRAGMENT_TAG
 import com.personal.frbk1992.spamsmsdetector.R
 import kotlinx.android.synthetic.main.activity_sms.*
 
+/**
+ * This activity show information about the Application with a link to the report
+ */
 class AppInfoActivity : AppCompatActivity() {
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //setthe view
         setContentView(R.layout.activity_app_info)
 
+        //set the toolbar
         setSupportActionBar(toolbar)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

@@ -36,6 +36,8 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
     private var phishingCheck = false
     //this variable indicate if the app is checking if the URL is phishing is in process
     private var phishingInProcess = false
+    //this variable indicate if the there was an error checking the URL
+    private var phishingError = false
 
     private var mListener: OnSMSDetailFragmentInteractionListener? = null //listener
 
@@ -84,7 +86,12 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
                         //phishingInProcess to false
                         phishingInProcess = false
                         phishingCheck = true
-                    }else if(phishingCheck && !sms!!.phishing){
+                    }else if(phishingError){
+                        //Error
+                        showToast(activity!!.applicationContext,
+                                getString(R.string.fragment_sms_check_url_error))
+                    }
+                    else if(phishingCheck && !sms!!.phishing){
                         //it was already checked and site is not phishing
                         showToast(activity!!.applicationContext,
                                 getString(R.string.fragment_sms_check_url_for_phishing_url_not_phishing))
@@ -92,13 +99,14 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
                         //button was pressed, check is in process
                         showToast(activity!!.applicationContext,
                                 getString(R.string.fragment_sms_check_url_for_phishing_is_in_process))
-                    }else if(!phishingCheck && !phishingInProcess){
+                    }
+                    else if(!phishingCheck && !phishingInProcess){
                         //Phishing is not in process and the button hasn't pressed, until now
                         showToast(activity!!.applicationContext,
                                 getString(R.string.fragment_sms_check_url_for_phishing_start))
 
                         //check if URL is phishing here
-                        FindValuesURL(context!!, fragment = this, url = sms!!.url, _id= sms!!.id).getFeatures()
+                        FindValuesURL<Fragment>(context!!, listener = this, url = sms!!.url).getFeatures()
                         //phishingInProcess to true to indicate the app is checking if the URL is phishing
                         phishingInProcess = true
 
@@ -164,13 +172,23 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
     /**
      * this function is called when all the features has been detected
      */
-    override fun siteFeatures(ctx: Context, url: String, features: FloatArray, _id: Int) {
+    override fun siteFeatures(ctx: Context, url: String, features: FloatArray) {
         //Log.v(TAG, "url $url")
        // Log.v(TAG, "features ${Arrays.toString(features)}")
 
         //check if site is phishing
         mListener?.detectPhishingSite(features)!!
 
+    }
+
+    /**
+     * Site could not be found, code != 200
+     */
+    override fun errorNoFoundUrl() {
+        phishingError = true
+        //Error
+        showToast(activity!!.applicationContext,
+                getString(R.string.fragment_sms_check_url_error))
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,6 +200,8 @@ class SMSDetailFragment : Fragment(), FindValuesURL.OnFinishFeaturesPhishingWebs
      */
     interface OnSMSDetailFragmentInteractionListener{
         fun detectPhishingSite(features : FloatArray) : Boolean
+
+
     }
 
     companion object {

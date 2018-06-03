@@ -6,32 +6,32 @@ import java.io.IOException
 import java.net.*
 
 /**
- * Made a http connection, the class receive a the interface EventHandler and the url as
- * parameters and the timeout, the timeout is 60 seconds by default
+ * Make an connection and return a possible redirection, for example: the domain gooogle.com
+ * redirect to the google.com domain, this can be used to get the URL long version of an shorten URL
+ * or a malicious website can have several redirection to hide itself
+ * @param eventHandler: EventHandler instance used to return the result or error
+ * @param urlString: URL to try to find the redirection
  */
-class URLRedirect(val eventHandler: EventHandler, val urlString: String, val timeOut: Int = 30000)
+class URLRedirect(val eventHandler: EventHandler, val urlString: String)
     : AsyncTask<Int, Unit, ConnectionResponse>() {
 
 
+    // TAG for the logs
     private val TAG = this.javaClass.simpleName
 
-    override fun onPreExecute() {
-        super.onPreExecute()
-        eventHandler.startedRequest()
-    }
 
+    // perform the async task
     override fun doInBackground(vararg code: Int?): ConnectionResponse {
 
+        // start the HttpURLConnection instance
         var urlConnection: HttpURLConnection? = null
-        val expandedURL : String?
         val connResponse = ConnectionResponse(url = urlString, code = code[0])
 
         try {
 
             val url = URL(urlString)
 
-
-            // Create the request to OpenWeatherMap, and open the connection
+            // Create the request to the URL, and open the connection
             urlConnection = url.openConnection() as HttpURLConnection
             // stop following browser redirect
             urlConnection.instanceFollowRedirects = false
@@ -42,10 +42,6 @@ class URLRedirect(val eventHandler: EventHandler, val urlString: String, val tim
 
             Log.v(TAG, "expandedURL $connResponse.answer")
 
-        } catch (e: SocketTimeoutException) {
-            Log.e(TAG, "Error ", e)
-            eventHandler.finishedWithException(e)
-            return connResponse
         } catch (e: IOException) {
             Log.e(TAG, "Error ", e)
             eventHandler.finishedWithException(e)
@@ -63,9 +59,8 @@ class URLRedirect(val eventHandler: EventHandler, val urlString: String, val tim
         return connResponse
     }
 
-
+    // return the value
     override fun onPostExecute(result: ConnectionResponse?) {
-        eventHandler.endedRequest()
         eventHandler.finished(result!!)
     }
 }

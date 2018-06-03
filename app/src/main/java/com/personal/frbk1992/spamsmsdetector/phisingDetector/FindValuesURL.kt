@@ -1,9 +1,8 @@
 package com.personal.frbk1992.spamsmsdetector.phisingDetector
 
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.os.Handler
-import android.support.v4.app.Fragment
+import android.os.Looper
 import android.util.Log
 import com.personal.frbk1992.spamsmsdetector.*
 import java.net.MalformedURLException
@@ -13,25 +12,38 @@ import java.security.cert.Certificate
 import java.security.cert.X509Certificate
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
+
 /**
- * Created by frbk on 31-Oct-17. find the values of the url for testing it
+ * Find the values of the url for testing it
+ * @param ctx: the context
+ * @param listener: the instance that is implementing OnFinishFeaturesPhishingWebsite, this can be a Fragment
+ * or a BroadCastReceiver
+ * @param url: The URL to test
+ *
  */
-class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
-                    val receiver : BroadcastReceiver? = null,
-                    var url: String, val _id : Int = 0) : EventHandler{
+class FindValuesURL<T>(val ctx : Context, val listener : T,
+                           var url: String) : EventHandler{
 
 
     init {
         deleteAllPreferences(ctx, URL_PREFERENCES)
-        initListener()
+        initVariables()
     }
 
+    // TAG for the logs
     private val TAG = this.javaClass.simpleName
 
+    // check if there is an error while checking the site
+    private var error = false
 
-    private var featuresUrl : String = ""
+    private lateinit var executorService : ExecutorService
+
+
     private var valuesRedirection = 0 //amount of time the website has been redirected
 
     //features to calculate, default value -2
@@ -51,60 +63,43 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
     private var urlOfAnchor = -2
     private var linksInTags = -2
     //private var sfh  = -2 //dont inderstand
-    //private var submittingtoemail = -2 //dont understand
-    //private var abnormalURL = -2 // dont understand
+    // from reviewing current phishing websites is not a common feature anymore, more analize required
+    //private var submittingtoemail = -2
+    //private var abnormalURL = -2
     private var redirect  = -2
-   //private var rightClick  = -2 //if theres time
-   //private var popUpWidnow  = -2 //if theres time
+    // from reviewing current phishing websites is not a common feature anymore, more analize required
+   //private var rightClick  = -2
+   //private var popUpWidnow  = -2 //not very easy to get, included in future version
     private var iFrame = -2
     private var ageOfDomain = -2
     private var dnsRecord   = -2
     private var webtraffic  = -2
     private var googleIndex = -2
-    //private var linkspointingtopage = -2 //if theres time
+    //private var linkspointingtopage = -2 //not very easy to get, I need to pay a service
     private var statisticalReport = -2
 
 
-
+    // listener to communicate with classes that implement OnFinishFeaturesPhishingWebsite
     private var mListener : OnFinishFeaturesPhishingWebsite? = null
 
 
-    //init method
-    private fun initListener(){
-        mListener = if(receiver == null && fragment == null) {
-            if (ctx is OnFinishFeaturesPhishingWebsite) {
-                ctx
-            } else {
-                throw RuntimeException(ctx.toString() + " must implement OnFinishFeaturesPhishingWebsite")
-            }
-        }else if(fragment != null){
-            if (fragment is OnFinishFeaturesPhishingWebsite) {
-                fragment
-            } else {
-                throw RuntimeException(receiver.toString() + " must implement OnFinishFeaturesPhishingWebsite")
-            }
-        }else{
-            if (receiver is OnFinishFeaturesPhishingWebsite) {
-                receiver
-            } else {
-                throw RuntimeException(receiver.toString() + " must implement OnFinishFeaturesPhishingWebsite")
-            }
+    //init the mListener
+    private fun initVariables(){
+        try{
+            mListener =  listener as OnFinishFeaturesPhishingWebsite
+        }catch (e : Exception) {
+            throw RuntimeException(listener.toString() + " must implement OnFinishFeaturesPhishingWebsite")
         }
+
+        // init the executorService with two threads
+        executorService = Executors.newFixedThreadPool(2)
+
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
-    //start the request
-    override fun startedRequest() {
-
-    }
-
-    //request finish
-    override fun endedRequest() {
-
-    }
 
     //got some data
     override fun finished(data: Any) {
@@ -116,28 +111,32 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                 //it was a regular conection, got the html file and the data
 
                 //check if it was a HTTPS connection, if it was check certificates
-                if(cr.isHttps!!)
+                if(cr.isHttps!!) {
                     checkCertificates(cr.certificates)
-
+                }
                 //parser the html code
                 parsetHTML(cr)
 
                 //check phishing site
                 checkBlackListPhishtank(cr)
+
             }
             ConnectionResponse.Constants.CODE_WHO_IS_CONECTION ->{
                 //connection was using who is
                 parserWhoIsAnswer(cr)
+
 
             }
             ConnectionResponse.Constants.CODE_ALEXA_CONECTION ->{
                 //connection was using alexa
                 parserAlexaAnswer(cr)
 
+
             }
             ConnectionResponse.Constants.CODE_GOOGLE_INDEX_CONECTION ->{
                 //connection was using alexa
                 parserPageIndexAnswer(cr)
+
 
             }
             ConnectionResponse.Constants.CODE_REDIRECT_CONECTION ->{
@@ -176,45 +175,28 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
 
     //error with the request
-    override fun finishedWithException(ex: Exception) {
-        Log.v(TAG, "finishedWithException")
-        Log.v(TAG, ex.toString())
+    override fun finishedWithException(ex: Exception, code: Int) {
+        Log.e(TAG, ex.toString())
+        //could not find the url, cancel
+
+        //stop the executorService, in case they were still working
+        executorService.shutdown()
+        executorService.shutdownNow()
+        Thread.currentThread().interrupt()
+
+        // set the flag to true, setting there was an error
+        error = true
+
+        // Get a handler that can be used to post to the main thread and show the user there was
+        // an error looking the URL
+        val mainHandler = Handler(Looper.getMainLooper())
+        mainHandler.post({ mListener?.errorNoFoundUrl()})
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    fun connectToServer(){
-        val ct = ConnectionHTTPTask(this, url)
-        ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONNECTION)
-    }
-
-
-    //function that retrieve a list of all js files the lib contains
-    //except for jquery, bootstrap and any min.js
-    private fun getJSFiles(data : String) : ArrayList<String>{
-        val jsFiles = ArrayList<String>()
-        val domain = getDomain()
-        var match : String
-        val matcher = Pattern.compile("(src=\"([^\"]+.js)\")").matcher(data)
-        while (matcher.find()) {
-            match = matcher.group(2)
-            if(!checkURL(match) && !match.contains("jquery", false)
-                    && !match.contains("bootstrap", false)
-                    && !match.contains(".min.", false))
-                if(url.endsWith("/")) jsFiles.add(url)
-                else{
-
-                }
-        }
-        return jsFiles
-    }
-
-
-    //get domain of the url
-    private fun getDomain() : String = URI(url).host.removePrefix("www.")
 
     /**
      * This function check if the String is a valid URL or not
@@ -266,7 +248,7 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         //check the amount of times a Redirection occur
         when {
             valuesRedirection >= 2 -> {
-                //redirection hight phisy
+                //redirection high phishing
                 redirect = PHISHING
                 savePrefence(ctx, URL_PREFERENCES, REDIRECT, redirect)
             }
@@ -321,28 +303,60 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
             PHISHING -> {
                 sslFinalState = PHISHING
                 savePrefence(ctx, URL_PREFERENCES, SSL_FINAL_STATE, sslFinalState)
-                val ct = ConnectionHTTPTask(this, url)
-                ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONNECTION)
+
             }
             else -> {
-                val ct = ConnectionHTTPSTask(this, url)
-                ct.execute(ConnectionResponse.Constants.CODE_REGULAR_CONNECTION)
+
+
             }
         }
 
+        /*
+         Make runnable and start executorService threads with each connection,
+         one regular connection to the URL, one connection to WhoIs server, one connection to Alexa
+         server and one connection for the Google Index
+         */
+        val run1 = Runnable { getValuesFromServer(this, url,
+                ConnectionResponse.Constants.CODE_REGULAR_CONNECTION) }
 
-        //make a who is connection
-        val whoIs = WhoisClientTask(this, url)
-        whoIs.execute(ConnectionResponse.Constants.CODE_WHO_IS_CONECTION)
+        val run2 = Runnable {
+            val whoIs = WhoisClientTask(this, url)
+            whoIs.execute(ConnectionResponse.Constants.CODE_WHO_IS_CONECTION)
+        }
 
-        //make a alexa connection
-        val alexa = ConnectionAlexaTask(this, url)
-        alexa.execute(ConnectionResponse.Constants.CODE_ALEXA_CONECTION)
+        val run3 = Runnable {getValuesFromServer(this, createURLAlexa(url),
+                ConnectionResponse.Constants.CODE_ALEXA_CONECTION) }
 
-        val googleIndex = ConnectionGoogleIndexTask(this, url)
-        googleIndex.execute(ConnectionResponse.Constants.CODE_GOOGLE_INDEX_CONECTION)
+        val run4 = Runnable { getValuesFromServer(this, createURLGoogleIndex(url),
+                ConnectionResponse.Constants.CODE_GOOGLE_INDEX_CONECTION) }
 
-        //check features until all of then are different than -2
+        //start the runnables
+        executorService.submit(run1)
+        executorService.submit(run2)
+        executorService.submit(run3)
+        executorService.submit(run4)
+
+        // stop the executorService of accepting new threads
+        executorService.shutdown()
+
+        /*
+        Wait 20 seconds, if the threads are not done yet close the executorService
+         */
+        try {
+            if (!executorService.awaitTermination(20, TimeUnit.SECONDS)) {
+                // the 20 seconds pass, with the threads still going, there was something weird
+                // maybe an error, close executorService and set error flag to true
+                executorService.shutdownNow()
+                error = true
+            }
+        } catch (ex: InterruptedException) {
+            // there was an error, set the error flag to true and shotdown executorService
+            executorService.shutdownNow()
+            Thread.currentThread().interrupt()
+            error = true
+        }
+
+        //it finished
         checkFeatures()
     }
 
@@ -776,19 +790,6 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
         Log.v(TAG, "theres NO iframe with frameBorder attribute")
         iFrame = LEGITIMATE
         savePrefence(ctx, URL_PREFERENCES, I_FFRAME, iFrame)
-
-
-       /* if (matcher.matches()) {
-            //theres iframe with frameBorder attribute
-            Log.v(TAG, "theres iframe with frameBorder attribute")
-            iFrame = PHISHING
-            savePrefence(ctx, URL_PREFERENCES, I_FFRAME, iFrame)
-        }else{
-            //theres NO iframe with frameBorder attribute
-            Log.v(TAG, "theres NO iframe with frameBorder attribute")
-            iFrame = LEGITIMATE
-            savePrefence(ctx, URL_PREFERENCES, I_FFRAME, iFrame)
-        }*/
     }
 
     /**
@@ -902,26 +903,20 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
 
     private fun checkFeatures(){
         val myHandler = Handler()
-        val features = getFeaturesArray_opt4()
-
-        if(features.contains((-2).toFloat())) {
-            myHandler.postDelayed({checkFeatures()}, 250)
+        if(!error) {
+            val features = getFeaturesArray_opt4()
+            Log.d(TAG, "features ${(features.contentToString())}")
+            //Log.d(TAG, "features ${(features.contentToString())}")
+            if (features.contains((-2).toFloat())) {
+                myHandler.postDelayed({ checkFeatures() }, 250)
+            } else {
+                mListener?.siteFeatures(ctx, url, features)
+            }
         }else{
-            mListener?.siteFeatures(ctx, url, features, _id)
+            mListener?.errorNoFoundUrl()
         }
 
     }
-
-    private fun getFeaturesArray() : FloatArray {
-        return floatArrayOf(havingIPAddress.toFloat(), urlLength.toFloat(),
-                shortiningService.toFloat(), havingAtSymbol.toFloat(), doubleslashredirecting.toFloat(),
-                prefixSuffix.toFloat() , havingSubDomain.toFloat(), sslFinalState.toFloat(),
-                domainRegisterationLength.toFloat() , favicon.toFloat(), port.toFloat(),
-                httpsToken.toFloat(), requestURL.toFloat(), urlOfAnchor.toFloat(), linksInTags.toFloat(),
-                redirect.toFloat(), iFrame.toFloat(), ageOfDomain.toFloat(), dnsRecord.toFloat(),
-                webtraffic.toFloat(), googleIndex.toFloat(), statisticalReport.toFloat())
-    }
-
 
 
     private fun getFeaturesArray_opt4() : FloatArray {
@@ -934,9 +929,16 @@ class FindValuesURL(val ctx : Context, val fragment : Fragment? = null,
                 webtraffic.toFloat(), googleIndex.toFloat())
     }
 
+    /**
+     * Interface that can be implement by any class to return the result of all the features of an
+     * URL to used if the URL is phishing or not, or an error
+     */
     interface OnFinishFeaturesPhishingWebsite{
 
         //finish to calculate all features
-        fun siteFeatures(ctx : Context, url: String, features : FloatArray, _id : Int)
+        fun siteFeatures(ctx : Context, url: String, features : FloatArray)
+
+        //could not find the site, error
+        fun errorNoFoundUrl()
     }
 }

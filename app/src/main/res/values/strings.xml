@@ -56,6 +56,7 @@
     <string name="fragment_sms_indicator_phishing">contains a phishing URL</string>
     <string name="title_activity_spam_sms">SMS Spam List</string>
     <string name="fragment_sms_check_url_for_phishing_is_in_process">Work in process.</string>
+    <string name="fragment_sms_check_url_error">Error checking the URL.</string>
     <string name="fragment_sms_check_url_for_phishing_start">Starting to check if URL is a phishing site.</string>
     <string name="fragment_sms_check_url_for_phishing_url_phishing">Warning: URL could be a phishing site.</string>
     <string name="fragment_sms_check_url_for_phishing_url_not_phishing">Low chances URL is not a phishing site.</string>
@@ -92,5 +93,5 @@
     <string name="fragment_app_info_info_app_pdf_link">http://web.uvic.ca/~frbk1992/project/csc578report.pdf</string>
     <string name="fragment_app_info_apache_libs_title">Open sources licenses</string>
     <string name="fragment_app_info_apache_libs">Tensorflow, RxJava, RxAndroid, RxKotlin, RxBinding,
-        RxPermissions, Apache Commons Net, Apache Commons Lang</string>
+        RxPermissions, Apache Commons Net, Apache Commons Lang, OkHttp</string>
 </resources>

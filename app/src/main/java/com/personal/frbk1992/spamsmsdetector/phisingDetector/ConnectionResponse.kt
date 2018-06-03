@@ -3,7 +3,7 @@ package com.personal.frbk1992.spamsmsdetector.phisingDetector
 import java.security.cert.Certificate
 
 /**
- * Created by frbk on 01-Nov-17. response from connecting to a url
+ * response from connecting to a url
  * The url is the URL of the website
  * answer is the response of the website, the .html code (can also be a .js)
  * code is an id setting to see what was the connection

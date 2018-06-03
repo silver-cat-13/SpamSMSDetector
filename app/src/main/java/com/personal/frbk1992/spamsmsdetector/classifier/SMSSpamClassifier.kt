@@ -13,13 +13,12 @@ import java.util.regex.Pattern
 
 
 /**
- * Created by frbk on 12-Nov-17.
- *
- * class that detects a sms spam classifier
+ * Class that creates a classifier to classify if aa set of feattures that comes from an SMS
+ * correspond to a spam SMS or not
  */
 class SMSSpamClassifier : Classifier {
 
-
+    // Tag for the logs
     private val TAG = this.javaClass.simpleName
 
     // Config values.
@@ -32,38 +31,49 @@ class SMSSpamClassifier : Classifier {
 
     private var inferenceInterface: TensorFlowInferenceInterface? = null
 
+    // Debug value to set the TensorFlow interface
     private var runStats = false
 
+    // result from the classifier
     private val SPAM = "P"
     private val NO_SPAM = "N"
 
 
-
-
-
+    /**
+     * Create the classifier to classify if a set of features correspond to a spam sms or not
+     * @param assetManager: the asset manager given by the context, it is used to get the model file
+     * @param modelFilename: the name of the model used to clasify the features
+     * @param inputName: name of the input parameters
+     * @param outputName: name of the output parameters
+     * @return the classifier
+     */
     fun create(assetManager: AssetManager,
                modelFilename : String,
                inputName : String,
                outputName : String) : SMSSpamClassifier {
 
-        Log.i(TAG, "Opening Spam Classifier")
-
+        // init the classifier
         val c = SMSSpamClassifier()
         c.inputName = inputName
         c.outputName = outputName
 
-
-
+        //set the tensorflow interface
         c.inferenceInterface = TensorFlowInferenceInterface(assetManager, modelFilename)
 
         // The shape of the output is [N, NUM_CLASSES], where N is the batch size.
-        val numClasses = c.inferenceInterface!!.graph().operation(outputName).output<Any>(0).shape().size(1).toInt()
-        Log.i(TAG, "Output layer size is $numClasses")
+        // in the case of this classifier is 2 classes
+        val numClasses = c.inferenceInterface!!
+                .graph()
+                .operation(outputName)
+                .output<Any>(0)
+                .shape()
+                .size(1)
+                .toInt()
 
         // Pre-allocate buffers.
         c.outputNames = arrayOf(outputName)
         c.outputs = FloatArray(numClasses)
-        Log.i(TAG, "SMS Classifier complete")
+       // Log.i(TAG, "SMS Classifier complete")
         return c
 
 
@@ -80,7 +90,7 @@ class SMSSpamClassifier : Classifier {
         }
 
         // Log this method so that it can be analyzed with systrace.
-        TraceCompat.beginSection("recognizeImage")
+        TraceCompat.beginSection("classifySpamValue")
 
         // Copy the input data into TensorFlow.
         TraceCompat.beginSection("feed")
@@ -97,8 +107,9 @@ class SMSSpamClassifier : Classifier {
         inferenceInterface!!.fetch(outputName, outputs)
         TraceCompat.endSection()
 
-        Log.i(TAG, "Result of the classifier ${Arrays.toString(outputs)}")
+       // Log.i(TAG, "Result of the classifier ${Arrays.toString(outputs)}")
 
+        //set the result of the classifier
         var spamResult = NO_SPAM
 
         if(outputs!![0] < outputs!![1]){
@@ -111,7 +122,7 @@ class SMSSpamClassifier : Classifier {
     }
 
 
-    /**
+    /*
      * Classify several inputs, the size of the input must be the amount of features * the amount
      * of samples
      *
@@ -121,7 +132,7 @@ class SMSSpamClassifier : Classifier {
      * the output will be an array of size M * 2, for each sample will generate
      * the output
      */
-    fun classifySeveralSMS(input: FloatArray): FloatArray {
+    /*fun classifySeveralSMS(input: FloatArray): FloatArray {
 
 
         //var fb = FloatBuffer.allocate(2)
@@ -156,7 +167,7 @@ class SMSSpamClassifier : Classifier {
         TraceCompat.endSection() // recognize page
 
         return fa
-    }
+    }*/
 
     /**
      * Static methods
@@ -211,17 +222,6 @@ class SMSSpamClassifier : Classifier {
         }
     }
 
-
-
-    /**
-     * get the statString from the inference
-     */
-    override fun getStatString(): String = inferenceInterface!!.statString
-
-    /**
-     * Activate or deactivate the inference in debug mode
-     */
-    override fun enableStatLogging(debug: Boolean){runStats = debug}
 
     /**
      * close the TensorFlowInferenceInterface

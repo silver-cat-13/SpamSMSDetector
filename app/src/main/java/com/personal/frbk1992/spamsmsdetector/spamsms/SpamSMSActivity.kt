@@ -334,8 +334,6 @@ class SpamSMSActivity : AppCompatActivity(),
             val amountWords = StringUtils.countMatches(sms, BAG_OF_WORDS[i])
             featuresSMS[i] = amountWords.toFloat()
         }
-
-        Log.v(TAG, "featuresSMS ${Arrays.toString(featuresSMS)}")
         return featuresSMS
     }
 
