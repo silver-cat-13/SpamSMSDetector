@@ -1,34 +1,25 @@
 package com.personal.frbk1992.spamsmsdetector.spamsms
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import com.personal.frbk1992.spamsmsdetector.R
 import com.personal.frbk1992.spamsmsdetector.*
 import com.personal.frbk1992.spamsmsdetector.appInfo.AppInfoActivity
 import com.personal.frbk1992.spamsmsdetector.classifier.SMSSpamClassifier
-import com.personal.frbk1992.spamsmsdetector.main.MainActivity
 import com.personal.frbk1992.spamsmsdetector.phisingDetector.URLCheck
 import com.personal.frbk1992.spamsmsdetector.sms.SMSActivity
-import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Single
 import io.reactivex.SingleObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-
 import kotlinx.android.synthetic.main.activity_spam_sms.*
 import org.apache.commons.lang3.StringUtils
-import java.util.*
 import java.util.concurrent.Callable
 import java.util.regex.Pattern
-import kotlin.collections.ArrayList
 
 /**
  * This activity show the list of spam sms, it looks for all sms in the device (checks if
