@@ -167,7 +167,6 @@ class SpamSMSActivity : AppCompatActivity(),
         return object : SingleObserver<Int> {
 
             override fun onSuccess(t: Int) {
-                Log.e(TAG, "Thread Name 3 ${Thread.currentThread().name}")
                 when(t){
                     INIT_CLASSIFIER ->{
                         Log.i(TAG, "Creating model for Spam classifier")
