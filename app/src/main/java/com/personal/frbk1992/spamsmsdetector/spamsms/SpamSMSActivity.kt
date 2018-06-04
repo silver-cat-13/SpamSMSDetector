@@ -85,25 +85,6 @@ class SpamSMSActivity : AppCompatActivity(),
     }
 
 
-    /**
-     * Funtion to check if the
-     */
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<out String>,
-                                            grantResults: IntArray) {
-        when(requestCode){
-            REQUEST_PERMISSION_RECEIVE_SMS ->{
-                if (grantResults.isNotEmpty()
-                        && grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                    showNeutralDialog(this, "Please", ":(", "close")
-                }else{
-                    //permission acepted, show fragment
-                    startFragment(SpamSMSActivityFragment.newInstance(), SMS_LIST_FRAGMENT_TAG)
-                }
-            }
-        }
-    }
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //          OnSMSSpamListFragmentInteractionListener  Functions                               //
