@@ -48,6 +48,9 @@ class SpamSMSActivity : AppCompatActivity(),
     //classifier for spam SMS
     private var smsSpamClassifier: SMSSpamClassifier? = null
 
+    //arrayList sms
+    private lateinit var smsList : ArrayList<SMSClass>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //set the view
@@ -61,23 +64,11 @@ class SpamSMSActivity : AppCompatActivity(),
 
         initTensorFlowAndLoadModel()
 
-        //call the SpamSMSActivityFragment and check for SMS permission and ask for it in case
-        // it's need it
-        if (savedInstanceState == null) {
-            rxPermission.request(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS)
-                    .subscribe({ granted ->
-                        if(granted){
-                            //permission was granted
-                            startFragment(SpamSMSActivityFragment.newInstance(), SMS_SPAM_LIST_FRAGMENT_TAG)
-                        }else{
-                            //permission was not granted
-                            showNeutralDialogFinishActivity(getString(R.string.alert_dialog_not_permission_title_string),
-                                    getString(R.string.alert_dialog_not_permission_body_string),
-                                    getString(R.string.alert_dialog_not_permission_botton_string))
-                        }
-                    })
-
-
+        //get the sms array list
+        smsList = ArrayList()
+        val bundle = intent.extras
+        if(bundle != null){
+            smsList.addAll(bundle.getParcelableArrayList(SMS_LIST_INTENT))
         }
     }
 
@@ -119,48 +110,6 @@ class SpamSMSActivity : AppCompatActivity(),
      * to update the list
      */
     override fun showAllSpamSMS(){
-        val smsList = ArrayList<SMSClass>()
-
-       /* val sms1 = SMSClass(1, "+10000000", "This is no spam", spam = false)
-        val sms2 = SMSClass(1, "+10000000", "On your laptop")
-        val sms3 = SMSClass(1, "+10000000", "This is spam", spam = true)
-        val sms4 = SMSClass(1
-                , "+10000000"
-                , "Your R0YALBANK services has been disabled for safety! Please visit the link below in order to reactivate your account rbc.com.verifybanssl.com/?12506615001"
-        )
-        val sms5 = SMSClass(1
-                , "+10000000"
-                , "Hi there! Check my message in new social network. Waiting for your reply... My link: http://u.to/3_fEEQ"
-        )
-        smsList.add(sms1)
-        smsList.add(sms2)
-        smsList.add(sms3)
-        smsList.add(sms4)
-        smsList.add(sms5)*/
-
-
-        val uriSMSURI = Uri.parse("content://sms/inbox")
-        val cur = contentResolver.query(uriSMSURI,
-                null,
-                null,
-                null,
-                null)
-
-        while (cur != null && cur.moveToNext()) {
-            try {
-                val id = cur.getString(cur.getColumnIndex("_id"))
-                val address = cur.getString(cur.getColumnIndex("address"))
-                val body = cur.getString(cur.getColumnIndexOrThrow("body"))
-                smsList.add(SMSClass(id.toInt(), address, body))
-            }catch (e : java.lang.IllegalStateException){
-                //an IllegalStateException by one SMS, it will be not taken into account
-                Log.e(TAG, "Error with one SMS ${e.message}")
-            }
-        }
-
-        cur?.close()
-
-
         //check sms list
         Single.fromCallable(callableSpamListClassifier(smsList))
                 .subscribeOn(Schedulers.newThread())

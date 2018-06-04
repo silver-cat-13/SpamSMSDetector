@@ -148,6 +148,7 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
      */
     override fun goSpamSMSActivity(smsList : ArrayList<SMSClass>) {
         val intent = Intent(baseContext, SpamSMSActivity::class.java)
+        intent.putParcelableArrayListExtra(SMS_LIST_INTENT, smsList)
         startActivity(intent)
 
     }

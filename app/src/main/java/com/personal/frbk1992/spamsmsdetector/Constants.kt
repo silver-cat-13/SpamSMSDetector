@@ -20,6 +20,8 @@ const val LEGITIMATE_S = "Legitimate"
 const val SUSPICIOUS_S  = "Suspicious"
 */
 
+const val SMS_LIST_INTENT = "sms_list"
+
 /*
 Tags used by the fragments, this can help to find a fragment by TAG if necessary
  */
