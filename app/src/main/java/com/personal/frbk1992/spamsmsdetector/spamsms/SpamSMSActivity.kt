@@ -59,9 +59,6 @@ class SpamSMSActivity : AppCompatActivity(),
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        //create the RxPermission
-        val rxPermission = RxPermissions(this)
-
         initTensorFlowAndLoadModel()
 
         //get the sms array list
@@ -69,6 +66,14 @@ class SpamSMSActivity : AppCompatActivity(),
         val bundle = intent.extras
         if(bundle != null){
             smsList.addAll(bundle.getParcelableArrayList(SMS_LIST_INTENT))
+        }
+
+        //call the SpamSMSActivityFragment and check for SMS permission and ask for it in case
+        // it's need it
+        if (savedInstanceState == null) {
+            //permission was granted
+            startFragment(SpamSMSActivityFragment.newInstance(), SMS_SPAM_LIST_FRAGMENT_TAG)
+
         }
     }
 
@@ -148,33 +153,6 @@ class SpamSMSActivity : AppCompatActivity(),
     //                                   SpamSMSActivity  Functions                               //
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    /**
-     * Show a dialog that ends the application, the dialog finish the all the activities,
-     * calls the main activity uising intent and then closes it
-     * @param title el titulo del dialog
-     * @param content el mensaje
-     * @param bottonMsg el boton neutral
-     */
-    private fun showNeutralDialogFinishActivity(title: String, content: String, bottonMsg: String) {
-        //Dialogo de alerta que aparece cuando se preciona acerca de
-        val alert = android.app.AlertDialog.Builder(this)
-                .setTitle(title)
-                .setMessage(content)
-                .setNeutralButton(bottonMsg) { _, _ ->
-                    //empty
-                }
-                .create()
-        alert.setOnDismissListener {
-            //finish the activity
-            val intent = Intent(applicationContext, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            intent.putExtra(EXIT, true)
-            startActivity(intent)
-        }
-        alert.show()
-
-    }
 
 
     /**
