@@ -14,6 +14,9 @@ import com.personal.frbk1992.spamsmsdetector.sms.SMSActivity
 import com.personal.frbk1992.spamsmsdetector.spamsms.SpamSMSActivity
 import com.tbruyelle.rxpermissions2.RxPermissions
 import kotlinx.android.synthetic.main.app_bar_main.*
+import android.content.ContentResolver
+import android.util.SparseArray
+import kotlin.concurrent.thread
 
 
 /**
@@ -27,8 +30,17 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
     //tag used for Log
     private val TAG = this.javaClass.simpleName
 
+    private val SMS_URI_CONTENT = "content://sms/" // String used to get SMS
+    private val SMS_CONVERSATIONS = "conversations"
+    private val SMS_ID = "_id"
+    private val SMS_ADDRESS = "address"
+    private val SMS_BODY = "body"
+    private val DATE_DEST_ORDER = "date DESC"
+
     //create the RxPermission
     private val rxPermission : RxPermissions by lazy{ RxPermissions(this) }
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,47 +93,18 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
      * Function that retrieve all sms in the phone and creates an ArrayList<SMSClass> with each SMS
      * @return List of all SMS
      */
-    override fun getSMS(): ArrayList<SMSClass> {
-        val sms = ArrayList<SMSClass>()
-        /*
-        val sms1 = SMSClass(1, "+10000000", "This is no spam", spam = false)
-        val sms2 = SMSClass(1, "+10000000", "On your laptop")
-        val sms3 = SMSClass(1, "+10000000", "This is spam", spam = true)
-        val sms4 = SMSClass(1
-                , "+10000000"
-                , "Your R0YALBANK services has been disabled for safety! Please visit the link below in order to reactivate your account rbc.com.verifybanssl.com/?12506615001"
-        )
-        val sms5 = SMSClass(1
-                , "+10000000"
-                , "Hi there! Check my message in new social network. Waiting for your reply... My link: http://u.to/3_fEEQ"
-        )
-        sms.add(sms1)
-        sms.add(sms2)
-        sms.add(sms3)
-        sms.add(sms4)
-        sms.add(sms5)*/
+    override fun getSMS(): SparseArray<Conversation> {
+        val conversations = SparseArray<Conversation>()
 
-        val uriSMSURI = Uri.parse("content://sms/inbox")
-        val cur = contentResolver.query(uriSMSURI,
-                null, null, null, null)
+        // get the conversations in sms
+        if(getConversarions(conversations) == 1){
+            Log.e(TAG, "Error while getting the conversations, inform the use")
 
-        while (cur != null && cur.moveToNext()) {
-            //check if the SMS is correct
-            try {
-                val id = cur.getString(cur.getColumnIndex("_id"))
-                val address = cur.getString(cur.getColumnIndex("address"))
-                val body = cur.getString(cur.getColumnIndexOrThrow("body"))
-                sms.add(SMSClass(id.toInt(), address, body))
-            }catch (e : java.lang.IllegalStateException){
-                //an IllegalStateException by one SMS, it will be not taken into account
-                Log.e(TAG, "Error with one SMS ${e.message}")
-            }
+            // TODO handle better the error
+            showToast(this, "There was an error while getting the SMS messages")
         }
-        cur?.close()
 
-
-
-        return sms
+        return conversations
     }
 
     /**
@@ -161,6 +144,49 @@ class MainActivity : AppCompatActivity(), SMSListFragment.OnSMSListFragmentInter
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //                                      MainActivity  Functions                               //
     ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * This class get all the conversations and add them into a Conversation instance
+     * TODO use the conversation to store eaach conversation instead class instead the SMSClass
+     * TODO use RxJava to perform this action in an asynchronous way
+     * @return the function returns 0 in sucess and 1 if there is an error
+     */
+    private fun getConversarions(conversations : SparseArray<Conversation>) : Int? {
+        var isMe: Boolean // true if the user sent an email
+
+        val uriSMSURI = Uri.parse(SMS_URI_CONTENT) // content://sms/
+        val cur = contentResolver.query(uriSMSURI,
+                null, null, null, DATE_DEST_ORDER)
+
+
+        while (cur != null && cur.moveToNext()) {
+            try {
+                // check if the user is sender or receiver
+                isMe = cur.getString(cur.getColumnIndexOrThrow("person")) == null
+
+                // get all the parameters for the SMS
+                val id = cur.getString(cur.getColumnIndex(SMS_ID))
+                val address = cur.getString(cur.getColumnIndex(SMS_ADDRESS))
+                val body = cur.getString(cur.getColumnIndexOrThrow(SMS_BODY))
+                val date = cur.getString(cur.getColumnIndexOrThrow("date"))
+                val tid = cur.getString(cur.getColumnIndexOrThrow("thread_id")).toInt()
+
+                // create the SMSClass instance
+                val sms = SMSClass(id.toInt(), address, body, isMe=isMe, date=date)
+
+                // add the SMS in the conversations SparseArray
+                Conversation.addSMSToConversation(conversations, sms, tid)
+
+            }catch (e : java.lang.IllegalStateException){
+                //an IllegalStateException by one SMS, it will be not taken into account
+                Log.e(TAG, "Error with one SMS ${e.message}")
+                cur?.close()
+                return 1
+            }
+        }
+        cur?.close()
+        return 0 // success
+    }
 
 
     /**

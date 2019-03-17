@@ -23,10 +23,11 @@ import android.os.Parcelable
  * first one will be taken into account
  *
  * TODO add more parameters used for the app
+ * TODO make a function that checks the content variable and checks for an URL and updates the url variable
  */
 class SMSClass(val id : Int = 0, val title : String = "", val content : String = ""
                , var spam : Boolean = false, var phishing : Boolean = false
-               , var url : String = "") : Parcelable {
+               , var url : String = "", var isMe : Boolean = false, var date : String = "") : Parcelable {
 
     /**
      * Class constructor
@@ -36,11 +37,13 @@ class SMSClass(val id : Int = 0, val title : String = "", val content : String =
      */
     constructor(parcel: Parcel) : this(
             parcel.readInt(),
-            parcel.readString(),
-            parcel.readString(),
+            parcel.readString()!!,
+            parcel.readString()!!,
             parcel.readInt() != 0,
             parcel.readInt() != 0,
-            parcel.readString())
+            parcel.readString()!!,
+            parcel.readInt() != 0,
+            parcel.readString()!!)
 
     /**
      * Function implemented by
@@ -53,6 +56,8 @@ class SMSClass(val id : Int = 0, val title : String = "", val content : String =
         parcel.writeInt(if(spam) 1 else 0)
         parcel.writeInt(if(phishing) 1 else 0)
         parcel.writeString(url)
+        parcel.writeInt(if(isMe) 1 else 0)
+        parcel.writeString(date)
     }
 
     override fun describeContents(): Int  = 0
@@ -62,4 +67,9 @@ class SMSClass(val id : Int = 0, val title : String = "", val content : String =
         override fun newArray(size: Int): Array<SMSClass?> = arrayOfNulls(size)
     }
 
+
+    override fun toString(): String {
+        return "SMS object with id: $id, title $title date $date isMe$isMe" +
+                " spam $spam phishing $phishing url $url content $content"
+    }
 }

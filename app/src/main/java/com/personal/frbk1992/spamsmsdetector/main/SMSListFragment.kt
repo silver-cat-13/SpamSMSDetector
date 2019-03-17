@@ -3,12 +3,13 @@ package com.personal.frbk1992.spamsmsdetector.main
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.ListFragment
+import android.util.SparseArray
 import android.view.*
 import android.widget.ListView
+import com.personal.frbk1992.spamsmsdetector.Conversation
 
 import com.personal.frbk1992.spamsmsdetector.R
 import com.personal.frbk1992.spamsmsdetector.SMSClass
-import com.personal.frbk1992.spamsmsdetector.showToast
 
 
 /**
@@ -24,8 +25,8 @@ class SMSListFragment : ListFragment(){
     //list view where the SMS are going to be shown
     private var mListView : ListView? = null
     lateinit var myListAdapter : MyListAdapter
-    //list of the SMS to be shown
-    lateinit var smsList : ArrayList<SMSClass>
+    //list of the conversations
+    lateinit var conversationList : SparseArray<Conversation>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -39,11 +40,11 @@ class SMSListFragment : ListFragment(){
         mListView = view.findViewById(android.R.id.list)
 
         //get all the sms
-        smsList =  mListener!!.getSMS()
+        conversationList =  mListener!!.getSMS()
 
         //start the adapter
         myListAdapter = MyListAdapter(this.context,
-                smsList)
+                conversationList)
 
         // set the adapter to the view
         listView.adapter = myListAdapter
@@ -69,7 +70,8 @@ class SMSListFragment : ListFragment(){
     override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
         //sms was selected, go the detail
         //get the sms selected and show ir
-        mListener?.showSMS(myListAdapter.getAllSMS()!![position])
+        // TODO update this to go to the conversation
+//        mListener?.showSMS(myListAdapter.getAllSMS()!![position])
     }
 
 
@@ -89,7 +91,9 @@ class SMSListFragment : ListFragment(){
         when(item?.itemId){
             R.id.fragment_list_menu_test_spam_sms_id ->{
                 //the test option was selected
-                mListener?.goSpamSMSActivity(smsList)
+                // TODO make the option go to spam sms activity
+                //mListener?.goSpamSMSActivity(conversationList)
+                return true
             }
             R.id.fragment_list_menu_information_app -> {
                 //go to the information activity
@@ -112,7 +116,7 @@ class SMSListFragment : ListFragment(){
      */
     interface OnSMSListFragmentInteractionListener{
         //get all sms
-        fun getSMS() : ArrayList<SMSClass>
+        fun getSMS() : SparseArray<Conversation>
 
         //show the detail of a sms
         fun showSMS(sms : SMSClass)

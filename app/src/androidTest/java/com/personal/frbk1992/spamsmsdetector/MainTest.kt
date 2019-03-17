@@ -152,13 +152,13 @@ class MainTest {
                 , "+10000000"
                 , "Your R0YALBANK services has been disabled for safety! Please visit the link below in order to reactivate your account rbc.com.verifybanssl.com/?12506615001"
         )
-        val smsList = ArrayList<SMSClass>()
-        smsList.add(sms)
-        smsList.add(sms2)
-        smsList.add(sms3)
-        smsList.add(sms4)
+        val conversationList = ArrayList<SMSClass>()
+        conversationList.add(sms)
+        conversationList.add(sms2)
+        conversationList.add(sms3)
+        conversationList.add(sms4)
         runOnUiThread{
-            smsListFragment.myListAdapter.update(smsList)
+            smsListFragment.myListAdapter.update(conversationList)
         }*/
     }
 
