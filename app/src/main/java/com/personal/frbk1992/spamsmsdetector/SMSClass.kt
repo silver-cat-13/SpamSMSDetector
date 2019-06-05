@@ -21,6 +21,8 @@ import android.os.Parcelable
  * @param phishing: A boolean indicating if a URL in the SMS is phishing or not, default value is false.
  * @param url: A string with the first URL in the SMS, if the SMS contains more than one URL only the
  * first one will be taken into account
+ *
+ * TODO add more parameters used for the app
  */
 class SMSClass(val id : Int = 0, val title : String = "", val content : String = ""
                , var spam : Boolean = false, var phishing : Boolean = false
